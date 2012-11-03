@@ -195,6 +195,12 @@ class CameraInfoManager():
         """:returns: String representation of :class:`CameraInfoManager` """
         return '[' + self.cname + ']' + str(self.utm)
 
+    def getCameraName(self):
+        """ Get the current camera name.
+        :returns: camera name string
+        """
+        return self.cname
+
     def setCameraName(self, cname):
         """ Set a new camera name.
 

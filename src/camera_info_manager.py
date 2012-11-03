@@ -33,10 +33,8 @@
 """
 .. module:: camera_info_manager
 
-Python subset of C++ camera_info_manager interface.
-
-This should be moved to its own separate package eventually, so other
-Python camera drivers can use it.
+Python subset of the C++ camera_info_manager interface, providing
+`CameraInfo` support for camera drivers written in Python.
 
 """
 

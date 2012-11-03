@@ -15,6 +15,9 @@
 
   <rosdep name="python-yaml"/>
 
-</package>
+  <export>
+    <rosdoc config="rosdoc.yaml" />
+  </export>
 
+</package>
 

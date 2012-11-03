@@ -1,4 +1,6 @@
 camera_info_manager_py
 ======================
 
-Subset of the C++ camera_info_manager ROS package for Python camera drivers.
+Python camera_info_manager interface, providing `CameraInfo` support
+for drivers written in Python. This is similar to the C++
+camera_info_manager package, but not identical.

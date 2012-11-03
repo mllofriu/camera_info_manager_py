@@ -6,11 +6,20 @@ import roslib; roslib.load_manifest(PKG)
 import sys
 import unittest
 
-import yaml
+#import yaml
 
-from sensor_msgs.msg import CameraInfo
-from sensor_msgs.srv import SetCameraInfo
+#from sensor_msgs.msg import CameraInfo
+#from sensor_msgs.srv import SetCameraInfo
+
 from camera_info_manager import *
+
+g_package_name = PKG
+g_test_name = "test_calibration"
+g_package_filename = "/tests/" + g_test_name +".yaml"
+g_package_url = "package://" + g_package_name + g_package_filename
+g_package_name_url = "package://" + g_package_name + "/tests/${NAME}.yaml"
+g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
+g_camera_name = "08144361026320a0"
 
 class TestCameraInfoManager(unittest.TestCase):
     """Unit tests for Python camera_info_manager.
@@ -63,6 +72,18 @@ class TestCameraInfoManager(unittest.TestCase):
                          "file_____INVALID__xxx_yaml")
         self.assertEqual(genCameraName("axis-00408c8ae301.local"),
                          "axis_00408c8ae301_local")
+
+    def test_url_resolution(self):
+        """Test URL variable resolution."""
+        cn = "axis_camera"
+
+        # strings with no variables pass through unchanged
+        self.assertEqual(resolveURL("file:///tmp/url.yaml", cn),
+                         "file:///tmp/url.yaml")
+        self.assertEqual(resolveURL(g_package_url, cn), g_package_url)
+        self.assertEqual(resolveURL("", cn), "")
+
+        # :todo: test variable substitution (when implemented)
 
 if __name__ == '__main__':
     import rosunit

@@ -33,8 +33,9 @@
 """
 .. module:: camera_info_manager
 
-Python subset of the C++ camera_info_manager interface, providing
-`CameraInfo` support for camera drivers written in Python.
+Python camera_info_manager interface, providing `CameraInfo` support
+for drivers written in Python. This is similar to the C++
+camera_info_manager package, but not identical.
 
 .. _`sensor_msgs/CameraInfo`: http://ros.org/doc/api/sensor_msgs/html/msg/CameraInfo.html
 .. _`sensor_msgs/SetCameraInfo`: http://ros.org/doc/api/sensor_msgs/html/srv/SetCameraInfo.html
@@ -236,3 +237,15 @@ def genCameraName(from_string):
         else:
             retval += from_string[i]
     return retval
+
+def resolveURL(url, cname):
+    """ Resolve Uniform Resource Locator string.
+
+    :param url: URL to resolve, which may include `${...}`
+                substitution variables.
+    :param cname: camera name to use for name resolution.
+
+    :returns: a copy of the URL with any variable information resolved.
+
+    """
+    return url                  # test scaffolding with no resolution

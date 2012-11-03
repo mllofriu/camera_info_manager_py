@@ -197,8 +197,18 @@ class CameraInfoManager():
         :returns: True if new name has valid syntax; valid names
                   contain only alphabetic, numeric, or '_' characters.
 
-        :post: cam_name updated, if valid; since it may affect the
+        :post: camera name updated, if valid; since it may affect the
                URL, cam_info will be reloaded before being used again.
 
         """
-        return True             # temporary test scaffolding
+        # validate name
+        if cname == '':
+            return False        # name may not be empty
+        for ch in cname:
+            if not ch.isalnum() and ch != '_':
+                return False    # invalid character
+
+        # name is valid, use it
+        self.cname = cname
+        self.loaded_cam_info = False
+        return True

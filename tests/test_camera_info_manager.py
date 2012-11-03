@@ -32,6 +32,17 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertTrue(cinfo.setCameraName("9z"))
         self.assertTrue(cinfo.setCameraName("08144361026320a0_640x480_mono8"))
 
+
+    def test_invalid_camera_names(self):
+        """Test that invalid camera names are rejected"""
+        cinfo = CameraInfoManager()
+
+        self.assertFalse(cinfo.setCameraName(""));
+        self.assertFalse(cinfo.setCameraName("-21"));
+        self.assertFalse(cinfo.setCameraName("C++"));
+        self.assertFalse(cinfo.setCameraName("file:///tmp/url.yaml"));
+        self.assertFalse(cinfo.setCameraName("file://${INVALID}/xxx.yaml"));
+
 if __name__ == '__main__':
     import rosunit
     rosunit.unitrun(PKG, 'test_camera_info_manager', TestCameraInfoManager) 

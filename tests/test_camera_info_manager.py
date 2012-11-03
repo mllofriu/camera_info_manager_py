@@ -85,6 +85,34 @@ class TestCameraInfoManager(unittest.TestCase):
 
         # :todo: test variable substitution (when implemented)
 
+    def test_valid_url_parsing(self):
+        """Test valid URL parsing."""
+
+        self.assertEqual(parseURL(""), URL_empty)
+
+        self.assertEqual(parseURL("file:///"), URL_file)
+        self.assertEqual(parseURL("file:///tmp/url.yaml"), URL_file)
+        self.assertEqual(parseURL("FILE:///tmp/url.yaml"), URL_file)
+
+        self.assertEqual(parseURL(g_package_url), URL_package)
+        self.assertEqual(parseURL("packAge://camera_info_manager/x"),
+                         URL_package)
+        self.assertEqual(parseURL("package://no_such_package/calibr.yaml"),
+                         URL_package)
+
+    def test_invalid_url_parsing(self):
+        """Test invalid URL parsing."""
+
+        self.assertEqual(parseURL("file://"), URL_invalid)
+        self.assertEqual(parseURL("flash:///"), URL_invalid)
+        self.assertEqual(parseURL("html://ros.org/wiki/camera_info_manager"),
+                         URL_invalid)
+        self.assertEqual(parseURL("package://"), URL_invalid)
+        self.assertEqual(parseURL("package:///"), URL_invalid)
+        self.assertEqual(parseURL("package://calibration.yaml"), URL_invalid)
+        self.assertEqual(parseURL("package://camera_info_manager_py/"),
+                         URL_invalid)
+
 if __name__ == '__main__':
     import rosunit
     rosunit.unitrun(PKG, 'test_camera_info_manager', TestCameraInfoManager) 

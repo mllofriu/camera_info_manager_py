@@ -49,6 +49,11 @@ from sensor_msgs.srv import SetCameraInfo
 
 import yaml
 
+# parseURL() type codes:
+URL_empty = 0                   # empty string 
+URL_file = 1                    # file:
+URL_package = 2                 # package:
+URL_invalid = 3                 # anything >= is invalid
 
 class CameraInfoManager():
     """
@@ -237,6 +242,32 @@ def genCameraName(from_string):
         else:
             retval += from_string[i]
     return retval
+
+def parseURL(url):
+    """ Parse calibration Uniform Resource Locator.
+
+    `param url`: string to parse
+    `returns` URL type code
+
+    `note`: Unsupported URL types have codes >= URL_invalid.
+
+    """
+
+    if url == "":
+        return URL_empty
+
+    if url[0:8].upper() == "FILE:///":
+        return URL_file;
+
+    if url[0:10].upper() == "PACKAGE://":
+        # look for a '/' following the package name, make sure it is
+        # there, the name is not empty, and something follows it
+
+        rest = url.find('/', 10);
+        if rest < len(url)-1 and rest >= 0:
+            return URL_package;
+
+    return URL_invalid;
 
 def resolveURL(url, cname):
     """ Resolve Uniform Resource Locator string.

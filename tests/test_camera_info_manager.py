@@ -44,18 +44,24 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_gen_camera_name(self):
         """Test camera name generation."""
-        cinfo = CameraInfoManager()
-        self.assertEqual(cinfo.genCameraName("a"), "a")
-        self.assertEqual(cinfo.genCameraName("1"), "1")
-        self.assertEqual(cinfo.genCameraName("_"), "_")
-        self.assertEqual(cinfo.genCameraName(""), "_")
-        self.assertEqual(cinfo.genCameraName("-21"), "_21")
-        self.assertEqual(cinfo.genCameraName("C++"), "C__")
-        self.assertEqual(cinfo.genCameraName("file:///tmp/url.yaml"),
+
+        # valid strings pass through unchanged
+        self.assertEqual(genCameraName("a"), "a")
+        self.assertEqual(genCameraName("1"), "1")
+        self.assertEqual(genCameraName("_"), "_")
+        self.assertEqual(genCameraName("0123456789abcdef"), "0123456789abcdef")
+        self.assertEqual(genCameraName("08144361026320a0_640x480_mono8"),
+                         "08144361026320a0_640x480_mono8")
+
+        # invalid strings get '_' substitution
+        self.assertEqual(genCameraName(""), "_")
+        self.assertEqual(genCameraName("-21"), "_21")
+        self.assertEqual(genCameraName("C++"), "C__")
+        self.assertEqual(genCameraName("file:///tmp/url.yaml"),
                          "file____tmp_url_yaml")
-        self.assertEqual(cinfo.genCameraName("file://${INVALID}/xxx.yaml"),
+        self.assertEqual(genCameraName("file://${INVALID}/xxx.yaml"),
                          "file_____INVALID__xxx_yaml")
-        self.assertEqual(cinfo.genCameraName("axis-00408c8ae301.local"),
+        self.assertEqual(genCameraName("axis-00408c8ae301.local"),
                          "axis_00408c8ae301_local")
 
 if __name__ == '__main__':

@@ -189,29 +189,6 @@ class CameraInfoManager():
         """:returns: String representation of :class:`CameraInfoManager` """
         return '[' + self.cname + ']' + str(self.utm)
 
-    def genCameraName(self, from_string):
-        """ Generate a valid camera name.
-
-        Valid names contain only alphabetic, numeric, or '_'
-        characters. All invalid characters in from_string are replaced
-        by an '_'.
-
-        :param from_string: string from which to base camera name.
-
-        :returns: a valid camera name based on from_string.
-
-        """
-        if from_string == '':
-            return '_'          # name may not be empty
-
-        retval = ''
-        for i in range(len(from_string)):
-            if not from_string[i].isalnum() and from_string[i] != '_':
-                retval += '_'
-            else:
-                retval += from_string[i]
-        return retval
-
     def setCameraName(self, cname):
         """ Set a new camera name.
 
@@ -235,3 +212,27 @@ class CameraInfoManager():
         self.cname = cname
         self.loaded_cam_info = False
         return True
+
+
+def genCameraName(from_string):
+    """ Generate a valid camera name.
+
+    Valid names contain only alphabetic, numeric, or '_'
+    characters. All invalid characters in from_string are replaced
+    by an '_'.
+
+    :param from_string: string from which to base camera name.
+
+    :returns: a valid camera name based on from_string.
+
+    """
+    if from_string == '':
+        return '_'          # name may not be empty
+
+    retval = ''
+    for i in range(len(from_string)):
+        if not from_string[i].isalnum() and from_string[i] != '_':
+            retval += '_'
+        else:
+            retval += from_string[i]
+    return retval

@@ -36,13 +36,169 @@
 Python subset of the C++ camera_info_manager interface, providing
 `CameraInfo` support for camera drivers written in Python.
 
+.. _`sensor_msgs/CameraInfo`: http://ros.org/doc/api/sensor_msgs/html/msg/CameraInfo.html
+.. _`sensor_msgs/SetCameraInfo`: http://ros.org/doc/api/sensor_msgs/html/srv/SetCameraInfo.html
+
 """
 
-PKG='axis_camera'                       # temporary packaging
+PKG='camera_info_manager_py'
 import roslib; roslib.load_manifest(PKG)
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 
 import yaml
 
-print 'camera_info_manager loaded'
+
+class CameraInfoManager():
+    """
+    :class:`CameraInfoManager` provides ROS CameraInfo support for
+    Python camera drivers. It handles the `sensor_msgs/SetCameraInfo`_
+    service requests, saving and restoring `sensor_msgs/CameraInfo`_
+    data.
+
+    :param cname: camera name.
+    :param url: Uniform Resource Locator for camera calibration data.
+ 
+    .. describe:: str(wu_point)
+ 
+       :returns: String representation of :class:`CameraInfoManager` object.
+
+    ROS Service
+    -----------
+
+    - set_camera_info (`sensor_msgs/SetCameraInfo`_) stores
+                      calibration information
+
+    Typically, these service requests are made by a calibration
+    package, such as:
+
+    - http://www.ros.org/wiki/camera_calibration
+
+    The calling node *must* invoke rospy.spin() in some thread, so
+    CameraInfoManager can handle arriving service requests.
+
+    @par Camera Name
+
+    The device driver sets a camera name via the
+    CameraInfoManager::CameraInfoManager constructor or the
+    setCameraName() method.  This name is written when CameraInfo is
+    saved, and checked when data are loaded, with a warning logged if
+    the name read does not match.
+
+    Syntax: a camera name contains any combination of alphabetic,
+            numeric and '_' characters.  Case is significant.
+
+    Camera drivers may use any syntactically valid name they please.
+    Where possible, it is best for the name to be unique to the
+    device, such as a GUID, or the make, model and serial number.  Any
+    parameters that affect calibration, such as resolution, focus,
+    zoom, etc., may also be included in the name, uniquely identifying
+    each CameraInfo file.
+
+    Beginning with Electric Emys, the camera name can be resolved as
+    part of the URL, allowing direct access to device-specific
+    calibration information.
+
+    @par Uniform Resource Locator
+
+    The location for getting and saving calibration data is expressed
+    by Uniform Resource Locator.  The driver defines a URL via the
+    CameraInfoManager::CameraInfoManager constructor or the
+    loadCameraInfo() method.  Many drivers provide a @c
+    ~camera_info_url parameter so users may customize this URL, but
+    that is handled outside this class.
+
+    Typically, cameras store calibration information in a file, which
+    can be in any format supported by @c camera_calibration_parsers.
+    Currently, that includes YAML and Videre INI files, identified by
+    their .yaml or .ini extensions as shown in the examples.  These
+    file formats are described here:
+
+    - http://www.ros.org/wiki/camera_calibration_parsers#File_formats
+
+    Example URL syntax:
+
+    - file:///full/path/to/local/file.yaml
+    - file:///full/path/to/videre/file.ini
+    - package://camera_info_manager/tests/test_calibration.yaml
+    - package://ros_package_name/calibrations/camera3.yaml
+
+    The @c file: URL specifies a full path name in the local system.
+    The @c package: URL is handled the same as @c file:, except the
+    path name is resolved relative to the location of the named ROS
+    package, which @em must be reachable via @c $ROS_PACKAGE_PATH.
+
+    Beginning with Electric Emys, the URL may contain substitution
+    variables delimited by <tt>${...}</tt>, including:
+
+    - @c ${NAME} resolved to the current camera name defined by the
+                 device driver.
+    - @c ${ROS_HOME} resolved to the @c $ROS_HOME environment variable
+                     if defined, <tt>~/.ros</tt> if not.
+
+    Resolution is done in a single pass through the URL string.
+    Variable values containing substitutable strings are not resolved
+    recursively.  Unrecognized variable names are treated literally
+    with no substitution, but an error is logged.
+
+    Examples with variable substitution:
+
+    - package://my_cameras/calibrations/${NAME}.yaml
+    - file://${ROS_HOME}/camera_info/left_front_camera.yaml
+
+    In C-turtle and Diamondback, if the URL was empty, no calibration
+    data were loaded, and any data provided via `set_camera_info`
+    would be stored in:
+
+    - file:///tmp/calibration_${NAME}.yaml
+
+    Beginning in Electric, the default URL changed to:
+
+    - file://${ROS_HOME}/camera_info/${NAME}.yaml.
+
+    If that file exists, its contents are used. Any new calibration
+    will be stored there, missing parent directories being created if
+    necessary and possible.
+
+    @par Loading Calibration Data
+
+    Prior to Fuerte, calibration information was loaded in the
+    constructor, and again each time the URL or camera name was
+    updated. This frequently caused logging of confusing and
+    misleading error messages.
+
+    Beginning in Fuerte, camera_info_manager loads nothing until the
+    @c loadCameraInfo(), @c isCalibrated() or @c getCameraInfo()
+    method is called. That suppresses bogus error messages, but allows
+    (valid) load errors to occur during the first @c getCameraInfo(),
+    or @c isCalibrated(). To avoid that, do an explicit @c
+    loadCameraInfo() first.
+
+    """
+
+    def __init__(self, cname='axis_camera', url=''):
+        """Constructor.
+        """
+        self.cname = cname
+        self.url = url
+        self.loaded_cam_info = False
+
+        # :todo: advertise set_camera_info service
+
+    def __str__(self):
+        """:returns: String representation of :class:`CameraInfoManager` """
+        return '[' + self.cname + ']' + str(self.utm)
+
+    def setCameraName(self, cname):
+        """ Set a new camera name.
+
+        :param cname: camera name to use for saving calibration data
+
+        :returns: True if new name has valid syntax; valid names
+                  contain only alphabetic, numeric, or '_' characters.
+
+        :post: cam_name updated, if valid; since it may affect the
+               URL, cam_info will be reloaded before being used again.
+
+        """
+        return True             # temporary test scaffolding

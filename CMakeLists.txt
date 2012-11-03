@@ -10,3 +10,6 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
+
+# unit tests
+rosbuild_add_pyunit(tests/test_camera_info_manager.py)

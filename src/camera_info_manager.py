@@ -55,6 +55,12 @@ URL_file = 1                    # file:
 URL_package = 2                 # package:
 URL_invalid = 3                 # anything >= is invalid
 
+class CameraInfoError(Exception):
+    """Base class for exceptions in this module."""
+
+class CameraInfoMissingError(CameraInfoError):
+    """Exception raised when CameraInfo has not been loaded."""
+
 class CameraInfoManager():
     """
     :class:`CameraInfoManager` provides ROS CameraInfo support for
@@ -187,7 +193,7 @@ class CameraInfoManager():
         """
         self.cname = cname
         self.url = url
-        self.loaded_cam_info = False
+        self.camera_info = None
 
         # :todo: advertise set_camera_info service
 
@@ -195,11 +201,43 @@ class CameraInfoManager():
         """:returns: String representation of :class:`CameraInfoManager` """
         return '[' + self.cname + ']' + str(self.utm)
 
+    def getCameraInfo(self):
+        """ Get the current camera calibration.
+        :returns: `sensor_msgs/CameraInfo`_ message.
+        :raises: :exc:`CameraInfoMissingError` when CameraInfo missing.
+        """
+        if self.camera_info is None:
+            raise CameraInfoMissingError('Calibration missing, loadCameraInfo() needed.')
+        return self.camera_info
+
     def getCameraName(self):
         """ Get the current camera name.
         :returns: camera name string
         """
         return self.cname
+
+    def isCalibrated(self):
+        """ Is the current CameraInfo calibrated?
+        :returns: True if camera calibration exists,
+                  False for null calibration.
+        :raises: :exc:`CameraInfoMissingError` when CameraInfo missing.
+        """
+        if self.camera_info is None:
+            raise CameraInfoMissingError('Calibration missing, loadCameraInfo() needed.')
+        return self.camera_info.K[0] != 0.0
+
+    def loadCameraInfo(self):
+        """ Load currently configured calibration data (if any).
+
+        This method updates self.camera_info, if possible, based on
+        the currently-configured self.url and self.cname.  An empty or
+        non-existent calibration is *not* considered an error; a null
+        `sensor_msgs/CameraInfo`_ being provided in that case.
+
+        :raises: :exc:`IOError` if an existing calibration is unreadable.
+
+        """
+        self.camera_info = CameraInfo() # stub version: null calibration
 
     def setCameraName(self, cname):
         """ Set a new camera name.
@@ -222,7 +260,7 @@ class CameraInfoManager():
 
         # name is valid, use it
         self.cname = cname
-        self.loaded_cam_info = False
+        self.camera_info = None
         return True
 
 

@@ -4,6 +4,7 @@ PKG='camera_info_manager_py'
 import roslib; roslib.load_manifest(PKG)
 
 import sys
+import os
 import unittest
 
 #import yaml
@@ -22,11 +23,26 @@ g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
 g_default_camera_name = "axis_camera"
 g_camera_name = "08144361026320a0"
 
+
+def delete_default_file():
+    """ Delete default configuration file.
+
+    Make sure it is not lying around from some previous test.
+    """
+    ros_home = "/tmp"
+    os.environ["ROS_HOME"] = ros_home
+    tmpFile = ros_home + "/camera_info/" + g_default_camera_name + ".yaml"
+    try:
+        os.remove(tmpFile)
+    except OSError:             # OK if file did not exist
+        pass
+
 class TestCameraInfoManager(unittest.TestCase):
     """Unit tests for Python camera_info_manager.
     """
 
     # camera name tests
+
     def test_valid_camera_names(self):
         """Test that valid camera names are accepted."""
         cinfo = CameraInfoManager()
@@ -79,6 +95,8 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertEqual(genCameraName("axis-00408c8ae301.local"),
                          "axis_00408c8ae301_local")
 
+    # URL parsing and validation
+
     def test_url_resolution(self):
         """Test URL variable resolution."""
         cn = "axis_camera"
@@ -118,6 +136,25 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertEqual(parseURL("package://calibration.yaml"), URL_invalid)
         self.assertEqual(parseURL("package://camera_info_manager_py/"),
                          URL_invalid)
+
+    # calibration data handling
+
+    def test_get_missing_info(self):
+        """ Test ability to detect missing CameraInfo."""
+        cinfo = CameraInfoManager()
+        self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
+        self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
+
+    def test_get_uncalibrated_info(self):
+        """ Test ability to provide uncalibrated CameraInfo"""
+
+        delete_default_file()
+        cinfo = CameraInfoManager()
+        cinfo.loadCameraInfo()
+        self.assertFalse(cinfo.isCalibrated());
+
+        ci = cinfo.getCameraInfo()
+        self.assertEqual(ci, CameraInfo())
 
 if __name__ == '__main__':
     import rosunit

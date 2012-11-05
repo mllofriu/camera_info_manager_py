@@ -23,19 +23,43 @@ g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
 g_default_camera_name = "axis_camera"
 g_camera_name = "08144361026320a0"
 
+# initialized ${ROS_HOME} for testing
+g_ros_home = "/tmp"
+os.environ["ROS_HOME"] = g_ros_home
+g_default_yaml = g_ros_home + "/camera_info/" + g_default_camera_name + ".yaml"
 
-def delete_default_file():
-    """ Delete default configuration file.
 
-    Make sure it is not lying around from some previous test.
+def delete_file(filename):
+    """ Delete a file, not complaining if it does not exist.
+
+    :param filename: path to file.
     """
-    ros_home = "/tmp"
-    os.environ["ROS_HOME"] = ros_home
-    tmpFile = ros_home + "/camera_info/" + g_default_camera_name + ".yaml"
     try:
-        os.remove(tmpFile)
+        os.remove(filename)
     except OSError:             # OK if file did not exist
         pass
+
+def expected_calibration():
+    """ These data must match the contents of test_calibration.yaml."""
+
+    ci = CameraInfo()
+    ci.width = 640
+    ci.height = 480
+
+    # set distortion coefficients
+    ci.distortion_model = "plumb_bob"
+    ci.D = [-1.04482, 1.59252, -0.0196308, 0.0287906, 0.0]
+
+    # set camera matrix
+    ci.K = [1168.68, 0., 295.015, 0., 1169.01, 252.247, 0., 0., 1.]
+
+    # set rectification matrix
+    ci.R = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
+
+    # set projection matrix
+    ci.P = [1168.68, 0., 295.015, 0., 0., 1169.01, 252.247, 0., 0., 0., 1., 0.]
+
+    return ci
 
 class TestCameraInfoManager(unittest.TestCase):
     """Unit tests for Python camera_info_manager.
@@ -125,7 +149,7 @@ class TestCameraInfoManager(unittest.TestCase):
                          URL_package)
 
     def test_invalid_url_parsing(self):
-        """Test invalid URL parsing."""
+        """ Test invalid URL parsing."""
 
         self.assertEqual(parseURL("file://"), URL_invalid)
         self.assertEqual(parseURL("flash:///"), URL_invalid)
@@ -137,6 +161,20 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertEqual(parseURL("package://camera_info_manager_py/"),
                          URL_invalid)
 
+    def test_get_package_filename(self):
+        """ Test getPackageFileName() function."""
+
+        # resolve known file in this package
+        filename = getPackageFileName(g_package_url)
+        pkgPath = roslib.packages.get_pkg_dir(g_package_name)
+        expected_filename = pkgPath + g_package_filename
+        self.assertEqual(filename, expected_filename)
+
+        # resolve non-existent package
+        filename = getPackageFileName("package://no_such_package/"
+                                      + g_package_filename)
+        self.assertEqual(filename, "")
+
     # calibration data handling
 
     def test_get_missing_info(self):
@@ -145,16 +183,49 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
         self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
 
+    def test_load_calibration_file(self):
+        """ Test loadCalibrationFile() function. """
+
+        # try with an actual file in this directory
+        pkgPath = roslib.packages.get_pkg_dir(g_package_name)
+        filename = pkgPath + g_package_filename
+        ci = loadCalibrationFile(filename, g_default_camera_name)
+        exp = expected_calibration()
+        self.assertEqual(ci, exp)
+
+        # an empty file should return a null calibration
+        filename = pkgPath + "/tests/empty.yaml"
+        ci = loadCalibrationFile(filename, g_default_camera_name)
+        self.assertEqual(ci, CameraInfo())
+
+        # a non-existent file should return a null calibration
+        delete_file(g_default_yaml)
+        ci = loadCalibrationFile(g_default_yaml, g_default_camera_name)
+        self.assertEqual(ci, CameraInfo())
+
     def test_get_uncalibrated_info(self):
         """ Test ability to provide uncalibrated CameraInfo"""
-
-        delete_default_file()
+        delete_file(g_default_yaml)
         cinfo = CameraInfoManager()
         cinfo.loadCameraInfo()
-        self.assertFalse(cinfo.isCalibrated());
+        self.assertFalse(cinfo.isCalibrated())
 
         ci = cinfo.getCameraInfo()
         self.assertEqual(ci, CameraInfo())
+
+    def test_get_calibrated_info(self):
+        """ Test ability to provide calibrated CameraInfo"""
+        return
+        pkgPath = roslib.packages.get_pkg_dir(g_package_name)
+        url = "file://" + pkgPath + g_package_filename
+
+        cinfo = CameraInfoManager(url)
+        cinfo.loadCameraInfo()
+
+        ci = cinfo.getCameraInfo()
+        exp = expected_calibration()
+        self.assertEqual(ci, exp)
+        self.assertTrue(cinfo.isCalibrated())
 
 if __name__ == '__main__':
     import rosunit

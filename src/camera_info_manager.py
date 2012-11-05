@@ -44,10 +44,13 @@ camera_info_manager package, but not identical.
 
 PKG='camera_info_manager_py'
 import roslib; roslib.load_manifest(PKG)
+import rospy
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 
 import yaml
+
+default_camera_info_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml";
 
 # parseURL() type codes:
 URL_empty = 0                   # empty string 
@@ -226,6 +229,42 @@ class CameraInfoManager():
             raise CameraInfoMissingError('Calibration missing, loadCameraInfo() needed.')
         return self.camera_info.K[0] != 0.0
 
+    def _loadCalibration(self, url, cname):
+        """ Load calibration data (if any).
+
+        This method updates self.camera_info, if possible, based on
+        the url and cname parameters.  An empty or non-existent
+        calibration is *not* considered an error; a null
+        `sensor_msgs/CameraInfo`_ being provided in that case.
+
+        :param url: Uniform Resource Locator for calibration data.
+        :param cname: Camera name.
+
+        :raises: :exc:`IOError` if an existing calibration is unreadable.
+
+        """
+        resolved_url = resolveURL(url, cname)
+        url_type = parseURL(resolved_url)
+
+        if url_type == URL_empty:
+            self._loadCalibration(default_camera_info_url, cname)
+            #self.camera_info = CameraInfo() # stub until full resolveURL()
+            return
+
+        rospy.loginfo('camera calibration URL: ' + resolved_url)
+
+        if url_type == URL_file:
+            self.camera_info = loadCalibrationFile(resolved_url[7:], cname)
+
+        elif url_type == URL_package:
+            filename = getPackageFileName(resolved_url)
+            if filename == '':          # package not resolved
+                raise CameraInfoMissingError('Calibration package missing.')
+            self.camera_info = loadCalibrationFile(filename, cname)
+
+        else:
+            rospy.logerr("Invalid camera calibration URL: " + resolved_url)
+
     def loadCameraInfo(self):
         """ Load currently configured calibration data (if any).
 
@@ -237,7 +276,7 @@ class CameraInfoManager():
         :raises: :exc:`IOError` if an existing calibration is unreadable.
 
         """
-        self.camera_info = CameraInfo() # stub version: null calibration
+        self._loadCalibration(self.url, self.cname)
 
     def setCameraName(self, cname):
         """ Set a new camera name.
@@ -287,6 +326,67 @@ def genCameraName(from_string):
             retval += from_string[i]
     return retval
 
+def getPackageFileName(url):
+    """ Get file name corresponding to a `package:` URL.
+
+    `param url` fully-resolved Uniform Resource Locator
+    `returns` file name if package found, "" otherwise
+
+    """
+    # Scan URL from after "package://" until next '/' and extract
+    # package name.  The parseURL() already checked that it's present.
+    prefix_len = len("package://")
+    rest = url.find('/', prefix_len)
+    package = url[prefix_len: rest]
+
+    # Look up the ROS package path name.
+    pkgPath = ""
+    try:
+        pkgPath = roslib.packages.get_pkg_dir(package)
+        pkgPath += url[rest:]
+
+    except roslib.packages.InvalidROSPkgException:
+        rospy.logwarn("unknown package: " + package + " (ignored)")
+
+    return pkgPath
+
+def loadCalibrationFile(filename, cname):
+    """ Load calibration data from a file.
+
+    This function returns a `sensor_msgs/CameraInfo`_ message, based
+    on the filename parameter.  An empty or non-existent file is *not*
+    considered an error; a null CameraInfo being provided in that
+    case.
+
+    :param filename: location of CameraInfo to read
+    :param cname: Camera name.
+    :returns: `sensor_msgs/CameraInfo`_ message containing calibration,
+              if file readable; null calibration message otherwise.
+    :raises: :exc:`IOError` if an existing calibration file is unreadable.
+
+    """
+    ci = CameraInfo()
+    try:
+        f = open(filename)
+        calib = yaml.load(f)
+        if calib is not None:
+            if calib['camera_name'] != cname:
+                rospy.logwarn("[" + cname + "] does not match name " +
+                              calib['camera_name'] + " in file " + filename)
+
+                ci.width = calib['image_width']
+                ci.height = calib['image_height']
+                ci.distortion_model = calib['distortion_model']
+                ci.D = calib['distortion_coefficients']['data']
+                ci.K = calib['camera_matrix']['data']
+                ci.R = calib['rectification_matrix']['data']
+                ci.P = calib['projection_matrix']['data']
+
+    except IOError:                     # OK if file did not exist
+        pass
+
+    return ci
+
 def parseURL(url):
     """ Parse calibration Uniform Resource Locator.
 
@@ -299,6 +399,9 @@ def parseURL(url):
 
     if url == "":
         return URL_empty
+
+    if url == default_camera_info_url:  # test stub hack XXX
+        return URL_file
 
     if url[0:8].upper() == "FILE:///":
         return URL_file;

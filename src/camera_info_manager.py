@@ -48,6 +48,7 @@ import rospy
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 
+import os
 import yaml
 
 default_camera_info_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml";
@@ -380,12 +381,8 @@ def parseURL(url):
     `note`: Unsupported URL types have codes >= URL_invalid.
 
     """
-
     if url == "":
         return URL_empty
-
-    if url == default_camera_info_url:  # test stub hack XXX
-        return URL_file
 
     if url[0:8].upper() == "FILE:///":
         return URL_file;
@@ -401,13 +398,59 @@ def parseURL(url):
     return URL_invalid;
 
 def resolveURL(url, cname):
-    """ Resolve Uniform Resource Locator string.
+    """ Resolve substitution strings in Uniform Resource Locator.
 
     :param url: URL to resolve, which may include `${...}`
                 substitution variables.
-    :param cname: camera name to use for name resolution.
+    :param cname: camera name for resolving `${NAME}` variables.
 
     :returns: a copy of the URL with any variable information resolved.
 
     """
-    return url                  # test scaffolding with no resolution
+    resolved = ''                # resolved URL to return
+    rest = 0                     # index of remaining string to parse
+
+    while True:
+
+        # find the next '$' in the URL string
+        dollar = url.find('$', rest)
+
+        if dollar == -1:                # no more '$'s there?
+            resolved += url[rest:]
+            return resolved
+
+        # copy characters up to the next '$'
+        resolved += url[rest:dollar]
+
+        if url[dollar+1:dollar+2] != '{':
+            #  no '{' follows, so keep the '$'
+            resolved += '$'
+
+        elif url[dollar+1:dollar+7] == '{NAME}':
+            # substitute camera name
+            resolved += cname
+            dollar += 6
+
+        elif url[dollar+1:dollar+11] == '{ROS_HOME}':
+            # substitute $ROS_HOME
+            ros_home = os.environ.get('ROS_HOME')
+            if ros_home is None:
+                ros_home = os.environ.get('HOME')
+                if ros_home is None:
+                    rospy.logwarn('[CameraInfoManager]' +
+                                  ' unable to resolve ${ROS_HOME}')
+                    ros_home = '${ROS_HOME}' # retain it unresolved
+                else:
+                    ros_home += '/.ros'
+            resolved += ros_home
+            dollar += 10
+
+        else:
+            # not a valid substitution variable
+            rospy.logwarn("[CameraInfoManager]" +
+                         " invalid URL substitution (not resolved): "
+                         + url);
+            resolved += "$";            # keep the bogus '$'
+
+        # look for next '$'
+        rest = dollar + 1

@@ -125,7 +125,7 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_url_resolution(self):
         """Test URL variable resolution."""
-        cn = "axis_camera"
+        cn = g_default_camera_name
 
         # strings with no variables pass through unchanged
         self.assertEqual(resolveURL("file:///tmp/url.yaml", cn),
@@ -133,7 +133,11 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertEqual(resolveURL(g_package_url, cn), g_package_url)
         self.assertEqual(resolveURL("", cn), "")
 
-        # :todo: test variable substitution (when implemented)
+        # test variable substitution
+        self.assertEqual(resolveURL(g_package_name_url, g_test_name),
+                         g_package_url)
+        self.assertEqual(resolveURL(g_default_url, cn),
+                         "file://" + g_default_yaml)
 
     def test_valid_url_parsing(self):
         """Test valid URL parsing."""

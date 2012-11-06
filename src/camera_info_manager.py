@@ -197,7 +197,6 @@ class CameraInfoManager():
         self.cname = cname
         self.url = url
         self.camera_info = None
-
         # :todo: advertise set_camera_info service
 
     def __str__(self):
@@ -230,7 +229,7 @@ class CameraInfoManager():
         return self.camera_info.K[0] != 0.0
 
     def _loadCalibration(self, url, cname):
-        """ Load calibration data (if any).
+        """ Load calibration data (if any available).
 
         This method updates self.camera_info, if possible, based on
         the url and cname parameters.  An empty or non-existent
@@ -374,13 +373,14 @@ def loadCalibrationFile(filename, cname):
                 rospy.logwarn("[" + cname + "] does not match name " +
                               calib['camera_name'] + " in file " + filename)
 
-                ci.width = calib['image_width']
-                ci.height = calib['image_height']
-                ci.distortion_model = calib['distortion_model']
-                ci.D = calib['distortion_coefficients']['data']
-                ci.K = calib['camera_matrix']['data']
-                ci.R = calib['rectification_matrix']['data']
-                ci.P = calib['projection_matrix']['data']
+            # fill in CameraInfo fields
+            ci.width = calib['image_width']
+            ci.height = calib['image_height']
+            ci.distortion_model = calib['distortion_model']
+            ci.D = calib['distortion_coefficients']['data']
+            ci.K = calib['camera_matrix']['data']
+            ci.R = calib['rectification_matrix']['data']
+            ci.P = calib['projection_matrix']['data']
 
     except IOError:                     # OK if file did not exist
         pass

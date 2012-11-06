@@ -34,7 +34,7 @@
 .. module:: camera_info_manager
 
 Python camera_info_manager interface, providing `CameraInfo` support
-for drivers written in Python. This is similar to the C++
+for drivers written in Python. This is very similar to the C++
 camera_info_manager package, but not identical.
 
 .. _`sensor_msgs/CameraInfo`: http://ros.org/doc/api/sensor_msgs/html/msg/CameraInfo.html
@@ -74,7 +74,7 @@ class CameraInfoManager():
     :param cname: camera name.
     :param url: Uniform Resource Locator for camera calibration data.
  
-    .. describe:: str(wu_point)
+    .. describe:: str(camera_info_manager_obj)
  
        :returns: String representation of :class:`CameraInfoManager` object.
 
@@ -90,9 +90,10 @@ class CameraInfoManager():
     - http://www.ros.org/wiki/camera_calibration
 
     The calling node *must* invoke rospy.spin() in some thread, so
-    CameraInfoManager can handle arriving service requests.
+    CameraInfoManager gets called to handle arriving service requests.
 
-    @par Camera Name
+    Camera Name
+    -----------
 
     The device driver sets a camera name via the
     CameraInfoManager::CameraInfoManager constructor or the
@@ -110,11 +111,11 @@ class CameraInfoManager():
     zoom, etc., may also be included in the name, uniquely identifying
     each CameraInfo file.
 
-    Beginning with Electric Emys, the camera name can be resolved as
-    part of the URL, allowing direct access to device-specific
-    calibration information.
+    The camera name can be resolved as part of the URL, allowing
+    direct access to device-specific calibration information.
 
-    @par Uniform Resource Locator
+    Uniform Resource Locator
+    ------------------------
 
     The location for getting and saving calibration data is expressed
     by Uniform Resource Locator.  The driver defines a URL via the
@@ -135,7 +136,7 @@ class CameraInfoManager():
 
     - file:///full/path/to/local/file.yaml
     - file:///full/path/to/videre/file.ini
-    - package://camera_info_manager/tests/test_calibration.yaml
+    - package://camera_info_manager_py/tests/test_calibration.yaml
     - package://ros_package_name/calibrations/camera3.yaml
 
     The @c file: URL specifies a full path name in the local system.
@@ -143,8 +144,8 @@ class CameraInfoManager():
     path name is resolved relative to the location of the named ROS
     package, which @em must be reachable via @c $ROS_PACKAGE_PATH.
 
-    Beginning with Electric Emys, the URL may contain substitution
-    variables delimited by <tt>${...}</tt>, including:
+    The URL may contain substitution variables delimited by `${...}`,
+    including:
 
     - @c ${NAME} resolved to the current camera name defined by the
                  device driver.
@@ -161,13 +162,7 @@ class CameraInfoManager():
     - package://my_cameras/calibrations/${NAME}.yaml
     - file://${ROS_HOME}/camera_info/left_front_camera.yaml
 
-    In C-turtle and Diamondback, if the URL was empty, no calibration
-    data were loaded, and any data provided via `set_camera_info`
-    would be stored in:
-
-    - file:///tmp/calibration_${NAME}.yaml
-
-    Beginning in Electric, the default URL changed to:
+    The default URL is:
 
     - file://${ROS_HOME}/camera_info/${NAME}.yaml.
 
@@ -175,19 +170,15 @@ class CameraInfoManager():
     will be stored there, missing parent directories being created if
     necessary and possible.
 
-    @par Loading Calibration Data
+    Loading Calibration Data
+    ------------------------
 
-    Prior to Fuerte, calibration information was loaded in the
-    constructor, and again each time the URL or camera name was
-    updated. This frequently caused logging of confusing and
-    misleading error messages.
+    The Python implementation loads nothing until the loadCameraInfo()
+    method is called.  It is an error to call getCameraInfo(), or
+    isCalibrated() before that is done.
 
-    Beginning in Fuerte, camera_info_manager loads nothing until the
-    @c loadCameraInfo(), @c isCalibrated() or @c getCameraInfo()
-    method is called. That suppresses bogus error messages, but allows
-    (valid) load errors to occur during the first @c getCameraInfo(),
-    or @c isCalibrated(). To avoid that, do an explicit @c
-    loadCameraInfo() first.
+    If the URL or camera name changes, loadCameraInfo() must be called
+    again before the data are accessible.
 
     """
 

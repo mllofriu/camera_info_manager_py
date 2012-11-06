@@ -119,38 +119,31 @@ class CameraInfoManager():
 
     The location for getting and saving calibration data is expressed
     by Uniform Resource Locator.  The driver defines a URL via the
-    CameraInfoManager::CameraInfoManager constructor or the
-    loadCameraInfo() method.  Many drivers provide a @c
-    ~camera_info_url parameter so users may customize this URL, but
-    that is handled outside this class.
+    CameraInfoManager::CameraInfoManager constructor or the setURL()
+    method.  Many drivers provide a `~camera_info_url` parameter so
+    users may customize this URL, but that is handled outside this
+    class.
 
-    Typically, cameras store calibration information in a file, which
-    can be in any format supported by @c camera_calibration_parsers.
-    Currently, that includes YAML and Videre INI files, identified by
-    their .yaml or .ini extensions as shown in the examples.  These
-    file formats are described here:
-
-    - http://www.ros.org/wiki/camera_calibration_parsers#File_formats
+    Camera calibration information is stored a YAML format.
 
     Example URL syntax:
 
     - file:///full/path/to/local/file.yaml
-    - file:///full/path/to/videre/file.ini
     - package://camera_info_manager_py/tests/test_calibration.yaml
     - package://ros_package_name/calibrations/camera3.yaml
 
-    The @c file: URL specifies a full path name in the local system.
-    The @c package: URL is handled the same as @c file:, except the
-    path name is resolved relative to the location of the named ROS
-    package, which @em must be reachable via @c $ROS_PACKAGE_PATH.
+    The `file:` URL specifies a full path name in the local system.
+    The `package:` URL is handled the same as `file:`, except the path
+    name is resolved relative to the location of the named ROS
+    package, which *must* be reachable via `$ROS_PACKAGE_PATH`.
 
     The URL may contain substitution variables delimited by `${...}`,
     including:
 
-    - @c ${NAME} resolved to the current camera name defined by the
-                 device driver.
-    - @c ${ROS_HOME} resolved to the @c $ROS_HOME environment variable
-                     if defined, <tt>~/.ros</tt> if not.
+    - ${NAME} resolved to the current camera name defined by the
+              device driver.
+    - ${ROS_HOME} resolved to the `$ROS_HOME` environment variable if
+                  defined, `~/.ros` if not.
 
     Resolution is done in a single pass through the URL string.
     Variable values containing substitutable strings are not resolved

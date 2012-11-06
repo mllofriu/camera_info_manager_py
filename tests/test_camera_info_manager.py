@@ -19,13 +19,11 @@ g_test_name = "test_calibration"
 g_package_filename = "/tests/" + g_test_name +".yaml"
 g_package_url = "package://" + g_package_name + g_package_filename
 g_package_name_url = "package://" + g_package_name + "/tests/${NAME}.yaml"
-g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
-g_default_camera_name = "axis_camera"
 
-# initialized ${ROS_HOME} for testing
-g_ros_home = "/tmp"
-os.environ["ROS_HOME"] = g_ros_home
-g_default_yaml = g_ros_home + "/camera_info/" + g_default_camera_name + ".yaml"
+g_ros_home = "/tmp"                    # unit test ${ROS_HOME} setting
+g_camera_name = "axis_camera"
+g_default_yaml = g_ros_home + "/camera_info/" + g_camera_name + ".yaml"
+g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
 
 
 def delete_file(filename):
@@ -97,7 +95,7 @@ class TestCameraInfoManager(unittest.TestCase):
                  "file://${INVALID}/xxx.yaml"]
         for cn in names:
             self.assertFalse(cinfo.setCameraName(cn))
-            self.assertEqual(cinfo.getCameraName(), g_default_camera_name)
+            self.assertEqual(cinfo.getCameraName(), g_camera_name)
 
     def test_gen_camera_name(self):
         """Test camera name generation."""
@@ -123,24 +121,78 @@ class TestCameraInfoManager(unittest.TestCase):
 
     # URL parsing and validation
 
-    def test_url_resolution(self):
-        """Test URL variable resolution."""
-        cn = g_default_camera_name
+    def test_url_substitution_no_variables(self):
+        """ Test that URLs with no variables are handled correctly."""
+        strings = ["",
+                   "file:///tmp/url.yaml",
+                   g_package_url,
+                   "xxx://nonsense"]
+        for url in strings:
+            self.assertEqual(resolveURL(url, g_camera_name), url)
 
-        # strings with no variables pass through unchanged
-        self.assertEqual(resolveURL("file:///tmp/url.yaml", cn),
-                         "file:///tmp/url.yaml")
-        self.assertEqual(resolveURL(g_package_url, cn), g_package_url)
-        self.assertEqual(resolveURL("", cn), "")
+    def test_url_substitution_camera_name(self):
+        """ Test URL ${NAME} variable resolution."""
+        cn = g_camera_name
+        os.environ["ROS_HOME"] = g_ros_home
 
         # test variable substitution
         self.assertEqual(resolveURL(g_package_name_url, g_test_name),
                          g_package_url)
         self.assertEqual(resolveURL(g_default_url, cn),
                          "file://" + g_default_yaml)
+        name_url = ("package://" + g_package_name +
+                    "/tests/${NAME}_calibration.yaml")
+        self.assertEqual(resolveURL(name_url, 'test'), g_package_url)
+        test_name = "camera_1024x768"
+        self.assertEqual(resolveURL(name_url, test_name),
+                         "package://" + g_package_name +
+                         "/tests/" + test_name + "_calibration.yaml")
+        self.assertEqual(resolveURL(name_url, ''),
+                         "package://" + g_package_name +
+                         "/tests/_calibration.yaml")
+
+    def test_url_substitution_ros_home(self):
+        """ Test URL ${ROS_HOME} variable resolution."""
+
+        # resolve ${ROS_HOME} with environment variable undefined
+        del os.environ["ROS_HOME"]
+        home = os.environ['HOME']
+        name_url = "file://${ROS_HOME}/camera_info/test_camera.yaml"
+        exp_url = "file://" + home + "/.ros/camera_info/test_camera.yaml"
+        self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
+
+        # resolve ${ROS_HOME} with environment variable defined
+        os.environ["ROS_HOME"] = "/my/ros/home"
+        exp_url = "file:///my/ros/home/camera_info/test_camera.yaml";
+        self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
+
+        # try the unit test default value
+        os.environ["ROS_HOME"] = g_ros_home
+        exp_url = "file:///tmp/camera_info/test_camera.yaml";
+        self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
+
+    def test_url_substitution_strange_dollar_signs(self):
+        """ Test URL variable resolution with strange '$' characters."""
+
+        # test for "$$" in the URL (NAME should be resolved)
+        name_url = "file:///tmp/$${NAME}.yaml"
+        exp_url = "file:///tmp/$" + g_camera_name + ".yaml"
+        self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
+
+        # test for "$" in middle of string
+        name_url = "file:///$whatever.yaml"
+        self.assertEqual(resolveURL(name_url, g_camera_name), name_url)
+
+        # test for "$$" in middle of string
+        name_url = "file:///something$$whatever.yaml"
+        self.assertEqual(resolveURL(name_url, g_camera_name), name_url)
+
+        # test for "$$" at end of string
+        name_url = "file:///$$"
+        self.assertEqual(resolveURL(name_url, g_camera_name), name_url)
 
     def test_valid_url_parsing(self):
-        """Test valid URL parsing."""
+        """ Test valid URL parsing."""
 
         self.assertEqual(parseURL(""), URL_empty)
 
@@ -195,21 +247,22 @@ class TestCameraInfoManager(unittest.TestCase):
         # try with an actual file in this directory
         pkgPath = roslib.packages.get_pkg_dir(g_package_name)
         filename = pkgPath + g_package_filename
-        ci = loadCalibrationFile(filename, g_default_camera_name)
+        ci = loadCalibrationFile(filename, g_camera_name)
         self.assertEqual(ci, expected_calibration())
 
         # an empty file should return a null calibration
         filename = pkgPath + "/tests/empty.yaml"
-        ci = loadCalibrationFile(filename, g_default_camera_name)
+        ci = loadCalibrationFile(filename, g_camera_name)
         self.assertEqual(ci, CameraInfo())
 
         # a non-existent file should return a null calibration
         delete_file(g_default_yaml)
-        ci = loadCalibrationFile(g_default_yaml, g_default_camera_name)
+        ci = loadCalibrationFile(g_default_yaml, g_camera_name)
         self.assertEqual(ci, CameraInfo())
 
     def test_get_uncalibrated_info(self):
         """ Test ability to provide uncalibrated CameraInfo"""
+        os.environ["ROS_HOME"] = g_ros_home
         delete_file(g_default_yaml)
         cinfo = CameraInfoManager()
         cinfo.loadCameraInfo()

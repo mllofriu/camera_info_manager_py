@@ -1,8 +1,8 @@
 <package>
 
   <description brief="camera_info_manager_py">
-    Provides basic Python interface for camera drivers similar to the
-    C++ camera_info_manager package.
+    Provides Python CameraInfo interface for camera drivers similar to
+    the C++ camera_info_manager package.
   </description>
 
   <author>Jack O'Quin</author>
@@ -12,7 +12,6 @@
 
   <depend package="rospy"/>
   <depend package="sensor_msgs"/>
-
   <rosdep name="python-yaml"/>
 
   <export>

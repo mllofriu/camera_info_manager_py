@@ -90,16 +90,17 @@ class CameraInfoManager():
     - http://www.ros.org/wiki/camera_calibration
 
     The calling node *must* invoke rospy.spin() in some thread, so
-    CameraInfoManager gets called to handle arriving service requests.
+    :class:`CameraInfoManager` gets called to handle arriving service
+    requests.
 
     Camera Name
     -----------
 
     The device driver sets a camera name via the
-    CameraInfoManager::CameraInfoManager constructor or the
-    setCameraName() method.  This name is written when CameraInfo is
-    saved, and checked when data are loaded, with a warning logged if
-    the name read does not match.
+    :class:`CameraInfoManager` constructor or the setCameraName()
+    method.  This name is written when CameraInfo is saved, and
+    checked when data are loaded, with a warning logged if the name
+    read does not match.
 
     Syntax: a camera name contains any combination of alphabetic,
             numeric and '_' characters.  Case is significant.
@@ -119,10 +120,9 @@ class CameraInfoManager():
 
     The location for getting and saving calibration data is expressed
     by Uniform Resource Locator.  The driver defines a URL via the
-    CameraInfoManager::CameraInfoManager constructor or the setURL()
-    method.  Many drivers provide a `~camera_info_url` parameter so
-    users may customize this URL, but that is handled outside this
-    class.
+    :class:`CameraInfoManager` constructor or the setURL() method.
+    Many drivers provide a `~camera_info_url` parameter so users may
+    customize this URL, but that is handled outside this class.
 
     Camera calibration information is stored a YAML format.
 

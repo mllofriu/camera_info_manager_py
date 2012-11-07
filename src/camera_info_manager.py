@@ -270,8 +270,9 @@ class CameraInfoManager():
         :returns: True if new name has valid syntax; valid names
                   contain only alphabetic, numeric, or '_' characters.
 
-        :post: camera name updated, if valid; since it may affect the
-               URL, cam_info will be reloaded before being used again.
+        :post: camera name updated, if valid. A new name may affect
+               the URL, so cam_info will have to be reloaded before
+               being used again.
 
         """
         # validate name
@@ -282,8 +283,9 @@ class CameraInfoManager():
                 return False    # invalid character
 
         # name is valid, use it
-        self.cname = cname
-        self.camera_info = None
+        if self.cname != cname:
+            self.cname = cname
+            self.camera_info = None     # becomes missing if name changed
         return True
 
 

@@ -241,6 +241,21 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
         self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
 
+        # after loading camera info, it is uncalibrated, but not missing
+        cinfo.loadCameraInfo()
+        self.assertFalse(cinfo.isCalibrated())
+        self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
+
+        # setting the same camera name changes nothing
+        cinfo.setCameraName(g_camera_name)
+        self.assertFalse(cinfo.isCalibrated())
+        self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
+
+        # setting a new camera name causes it to become missing again
+        cinfo.setCameraName('xxx')
+        self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
+        self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
+
     def test_load_calibration_file(self):
         """ Test loadCalibrationFile() function. """
 

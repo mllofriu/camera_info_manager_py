@@ -241,7 +241,13 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
         self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
 
+    def test_set_camera_name_info_invalidation(self):
+        """ Test that setCameraName() invalidates camera info correctly."""
+
         # after loading camera info, it is uncalibrated, but not missing
+        os.environ["ROS_HOME"] = g_ros_home
+        delete_file(g_default_yaml)     # remove default URL file
+        cinfo = CameraInfoManager()
         cinfo.loadCameraInfo()
         self.assertFalse(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
@@ -251,8 +257,30 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertFalse(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
 
-        # setting a new camera name causes it to become missing again
+        # setting a new camera name causes it to become missing
         cinfo.setCameraName('xxx')
+        self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
+        self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
+
+    def test_set_url_info_invalidation(self):
+        """ Test that setURL() invalidates camera info correctly."""
+
+        # after loading camera info, it is uncalibrated, but not missing
+        os.environ["ROS_HOME"] = g_ros_home
+        delete_file(g_default_yaml)     # remove default URL file
+        cinfo = CameraInfoManager()
+        cinfo.loadCameraInfo()
+        self.assertFalse(cinfo.isCalibrated())
+        self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
+
+        # setting the same URL changes nothing
+        my_url = cinfo.getURL()
+        self.assertTrue(cinfo.setURL(my_url))
+        self.assertFalse(cinfo.isCalibrated())
+        self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
+
+        # setting a new URL causes it to become missing
+        self.assertTrue(cinfo.setURL(g_package_url))
         self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
         self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
 
@@ -271,6 +299,7 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertEqual(ci, CameraInfo())
 
         # a non-existent file should return a null calibration
+        os.environ["ROS_HOME"] = g_ros_home
         delete_file(g_default_yaml)
         ci = loadCalibrationFile(g_default_yaml, g_camera_name)
         self.assertEqual(ci, CameraInfo())

@@ -203,6 +203,12 @@ class CameraInfoManager():
         """
         return self.cname
 
+    def getURL(self):
+        """ Get the current calibration URL.
+        :returns: URL string without variable expansion.
+        """
+        return self.url
+
     def isCalibrated(self):
         """ Is the current CameraInfo calibrated?
         :returns: True if camera calibration exists,
@@ -210,7 +216,8 @@ class CameraInfoManager():
         :raises: :exc:`CameraInfoMissingError` when CameraInfo missing.
         """
         if self.camera_info is None:
-            raise CameraInfoMissingError('Calibration missing, loadCameraInfo() needed.')
+            raise CameraInfoMissingError('Calibration missing, ' +
+                                         'loadCameraInfo() needed.')
         return self.camera_info.K[0] != 0.0
 
     def _loadCalibration(self, url, cname):
@@ -285,9 +292,31 @@ class CameraInfoManager():
         # name is valid, use it
         if self.cname != cname:
             self.cname = cname
-            self.camera_info = None     # becomes missing if name changed
+            self.camera_info = None     # missing if name changed
         return True
 
+    def setURL(self, url):
+        """ Set the calibration URL.
+
+        :param cname: camera name to use for saving calibration data
+
+        :returns: True if new name has valid syntax.
+
+        :post: URL updated, if valid. A new value may change the
+               camera_info, so it will have to be reloaded before
+               being used again.
+
+        """
+        if parseURL(resolveURL(url, self.cname)) >= URL_invalid:
+            return False                # syntax error
+
+        # URL looks valid, so use it
+        if self.url != url:
+            self.url = url
+            self.camera_info = None     # missing if URL changed
+        return True
+
+# related utility functions
 
 def genCameraName(from_string):
     """ Generate a valid camera name.

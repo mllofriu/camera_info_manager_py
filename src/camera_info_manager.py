@@ -60,11 +60,19 @@ URL_package = 2                 # package:
 URL_invalid = 3                 # anything >= is invalid
 
 class CameraInfoError(Exception):
-    """Base class for exceptions in this module."""
+    """
+    ..exception: CameraInfoError
+
+    Base class for exceptions in this module.
+    """
     pass
 
 class CameraInfoMissingError(CameraInfoError):
-    """Exception raised when CameraInfo has not been loaded."""
+    """
+    ..exception: CameraInfoMissingError
+
+    Exception raised when CameraInfo has not been loaded.
+    """
     pass
 
 class CameraInfoManager():

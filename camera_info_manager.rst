@@ -1,5 +1,5 @@
-unique_id
----------
+camera_info_manager
+-------------------
 
 .. automodule:: camera_info_manager
    :members:

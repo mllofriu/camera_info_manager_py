@@ -61,9 +61,11 @@ URL_invalid = 3                 # anything >= is invalid
 
 class CameraInfoError(Exception):
     """Base class for exceptions in this module."""
+    pass
 
 class CameraInfoMissingError(CameraInfoError):
     """Exception raised when CameraInfo has not been loaded."""
+    pass
 
 class CameraInfoManager():
     """
@@ -79,8 +81,7 @@ class CameraInfoManager():
  
        :returns: String representation of :class:`CameraInfoManager` object.
 
-    ROS Service
-    -----------
+    **ROS Service**
 
     - set_camera_info (`sensor_msgs/SetCameraInfo`_) stores
                       calibration information
@@ -90,18 +91,17 @@ class CameraInfoManager():
 
     - http://www.ros.org/wiki/camera_calibration
 
-    The calling node *must* invoke rospy.spin() in some thread, so
+    The calling node *must* invoke `rospy.spin()` in some thread, so
     :class:`CameraInfoManager` gets called to handle arriving service
     requests.
 
-    Camera Name
-    -----------
+    **Camera Name**
 
     The device driver sets a camera name via the
-    :class:`CameraInfoManager` constructor or the setCameraName()
-    method.  This name is written when CameraInfo is saved, and
-    checked when data are loaded, with a warning logged if the name
-    read does not match.
+    :class:`CameraInfoManager` constructor or the
+    :py:meth:`setCameraName` method.  This name is written when
+    CameraInfo is saved, and checked when data are loaded, with a
+    warning logged if the name read does not match.
 
     Syntax: a camera name contains any combination of alphabetic,
             numeric and '_' characters.  Case is significant.
@@ -116,14 +116,14 @@ class CameraInfoManager():
     The camera name can be resolved as part of the URL, allowing
     direct access to device-specific calibration information.
 
-    Uniform Resource Locator
-    ------------------------
+    **Uniform Resource Locator**
 
     The location for getting and saving calibration data is expressed
     by Uniform Resource Locator.  The driver defines a URL via the
-    :class:`CameraInfoManager` constructor or the setURL() method.
-    Many drivers provide a `~camera_info_url` parameter so users may
-    customize this URL, but that is handled outside this class.
+    :class:`CameraInfoManager` constructor or the :py:meth:`setURL`
+    method.  Many drivers provide a `~camera_info_url` parameter so
+    users may customize this URL, but that is handled outside this
+    class.
 
     Camera calibration information is stored a YAML format.
 
@@ -164,15 +164,15 @@ class CameraInfoManager():
     will be stored there, missing parent directories being created if
     necessary and possible.
 
-    Loading Calibration Data
-    ------------------------
+    **Loading Calibration Data**
 
-    The Python implementation loads nothing until the loadCameraInfo()
-    method is called.  It is an error to call getCameraInfo(), or
-    isCalibrated() before that is done.
+    The Python implementation loads nothing until the
+    :py:meth:`loadCameraInfo` method is called.  It is an error to
+    call :py:meth:`getCameraInfo`, or :py:meth:`isCalibrated` before
+    that is done.
 
-    If the URL or camera name changes, loadCameraInfo() must be called
-    again before the data are accessible.
+    If the URL or camera name changes, :py:meth:`loadCameraInfo` must
+    be called again before the data are accessible.
 
     """
 
@@ -239,7 +239,6 @@ class CameraInfoManager():
 
         if url_type == URL_empty:
             self._loadCalibration(default_camera_info_url, cname)
-            #self.camera_info = CameraInfo() # stub until full resolveURL()
             return
 
         rospy.loginfo('camera calibration URL: ' + resolved_url)

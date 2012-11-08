@@ -129,14 +129,14 @@ class CameraInfoManager():
 
     Example URL syntax:
 
-    - file:///full/path/to/local/file.yaml
-    - package://camera_info_manager_py/tests/test_calibration.yaml
-    - package://ros_package_name/calibrations/camera3.yaml
+    - `file:///full/path/to/local/file.yaml`
+    - `package://camera_info_manager_py/tests/test_calibration.yaml`
+    - `package://ros_package_name/calibrations/camera3.yaml`
 
     The `file:` URL specifies a full path name in the local system.
     The `package:` URL is handled the same as `file:`, except the path
     name is resolved relative to the location of the named ROS
-    package, which *must* be reachable via `$ROS_PACKAGE_PATH`.
+    package, which must be reachable via `$ROS_PACKAGE_PATH`.
 
     The URL may contain substitution variables delimited by `${...}`,
     including:
@@ -153,12 +153,12 @@ class CameraInfoManager():
 
     Examples with variable substitution:
 
-    - package://my_cameras/calibrations/${NAME}.yaml
-    - file://${ROS_HOME}/camera_info/left_front_camera.yaml
+    - `package://my_cameras/calibrations/${NAME}.yaml`
+    - `file://${ROS_HOME}/camera_info/left_front_camera.yaml`
 
     The default URL is:
 
-    - file://${ROS_HOME}/camera_info/${NAME}.yaml.
+    - `file://${ROS_HOME}/camera_info/${NAME}.yaml`
 
     If that file exists, its contents are used. Any new calibration
     will be stored there, missing parent directories being created if
@@ -166,10 +166,10 @@ class CameraInfoManager():
 
     **Loading Calibration Data**
 
-    The Python implementation loads nothing until the
-    :py:meth:`loadCameraInfo` method is called.  It is an error to
-    call :py:meth:`getCameraInfo`, or :py:meth:`isCalibrated` before
-    that is done.
+    Unlike the C++ camera_info_manager, this Python implementation
+    loads nothing until the :py:meth:`loadCameraInfo` method is
+    called.  It is an error to call :py:meth:`getCameraInfo`, or
+    :py:meth:`isCalibrated` before that is done.
 
     If the URL or camera name changes, :py:meth:`loadCameraInfo` must
     be called again before the data are accessible.
@@ -190,8 +190,15 @@ class CameraInfoManager():
 
     def getCameraInfo(self):
         """ Get the current camera calibration.
+
+        The :py:meth:`loadCameraInfo` must have been called since the
+        last time the camera name or URL changed.
+
         :returns: `sensor_msgs/CameraInfo`_ message.
-        :raises: :exc:`CameraInfoMissingError` when CameraInfo missing.
+
+        :raises: :exc:`CameraInfoMissingError` if camera info not up
+                 to date.
+
         """
         if self.camera_info is None:
             raise CameraInfoMissingError('Calibration missing, loadCameraInfo() needed.')
@@ -199,21 +206,30 @@ class CameraInfoManager():
 
     def getCameraName(self):
         """ Get the current camera name.
+
         :returns: camera name string
         """
         return self.cname
 
     def getURL(self):
         """ Get the current calibration URL.
+
         :returns: URL string without variable expansion.
         """
         return self.url
 
     def isCalibrated(self):
         """ Is the current CameraInfo calibrated?
-        :returns: True if camera calibration exists,
+
+        The :py:meth:`loadCameraInfo` must have been called since the
+        last time the camera name or URL changed.
+
+        :returns: True if camera calibration exists;
                   False for null calibration.
-        :raises: :exc:`CameraInfoMissingError` when CameraInfo missing.
+
+        :raises: :exc:`CameraInfoMissingError` if camera info not up
+                 to date.
+
         """
         if self.camera_info is None:
             raise CameraInfoMissingError('Calibration missing, ' +
@@ -225,7 +241,7 @@ class CameraInfoManager():
 
         This method updates self.camera_info, if possible, based on
         the url and cname parameters.  An empty or non-existent
-        calibration is *not* considered an error; a null
+        calibration is *not* considered an error, a null
         `sensor_msgs/CameraInfo`_ being provided in that case.
 
         :param url: Uniform Resource Locator for calibration data.
@@ -258,8 +274,8 @@ class CameraInfoManager():
     def loadCameraInfo(self):
         """ Load currently configured calibration data (if any).
 
-        This method updates self.camera_info, if possible, based on
-        the currently-configured self.url and self.cname.  An empty or
+        This method updates camera_info, if possible, based on the
+        currently-configured URL and camera name.  An empty or
         non-existent calibration is *not* considered an error; a null
         `sensor_msgs/CameraInfo`_ being provided in that case.
 
@@ -277,7 +293,7 @@ class CameraInfoManager():
                   contain only alphabetic, numeric, or '_' characters.
 
         :post: camera name updated, if valid. A new name may affect
-               the URL, so cam_info will have to be reloaded before
+               the URL, so camera_info will have to be reloaded before
                being used again.
 
         """

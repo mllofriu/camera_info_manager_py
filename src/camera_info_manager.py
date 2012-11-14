@@ -184,7 +184,7 @@ class CameraInfoManager():
     be called again before the data are accessible.
 
     """
-    def __init__(self, cname='axis_camera', url=''):
+    def __init__(self, cname='camera', url=''):
         """Constructor.
         """
         self.cname = cname

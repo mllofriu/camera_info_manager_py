@@ -21,7 +21,7 @@ g_package_url = "package://" + g_package_name + g_package_filename
 g_package_name_url = "package://" + g_package_name + "/tests/${NAME}.yaml"
 
 g_ros_home = "/tmp"                    # unit test ${ROS_HOME} setting
-g_camera_name = "axis_camera"
+g_camera_name = "camera"
 g_default_yaml = g_ros_home + "/camera_info/" + g_camera_name + ".yaml"
 g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
 
@@ -63,7 +63,7 @@ def expected_calibration():
 
 g_camera_info_manager = None
 
-def init_camera_info_manager(cname='axis_camera', url=''):
+def init_camera_info_manager(cname='camera', url=''):
     """ Return an initialized CameraInfoManager instance for testing.
 
     The `set_camera_info` service does not get freed immediately when

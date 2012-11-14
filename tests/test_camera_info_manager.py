@@ -25,6 +25,12 @@ g_camera_name = "camera"
 g_default_yaml = g_ros_home + "/camera_info/" + g_camera_name + ".yaml"
 g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
 
+def delete_tmp_camera_info_directory():
+    """ Delete the default camera info directory in /tmp.
+
+    Do not complain if it does not exist.
+    """
+    os.system("rm -rf " + g_ros_home + "/camera_info")
 
 def delete_file(filename):
     """ Delete a file, not complaining if it does not exist.
@@ -72,8 +78,8 @@ def init_camera_info_manager(cname='camera', url=''):
     instances for any tests that follow.
 
     As a work-around, this function manages a single global instance,
-    filling in the desired values, as requested.  Its syntax is
-    based on the CameraInfoManager constructor.
+    filling in the desired values, as requested.  Its state emulates
+    that of a new call to the CameraInfoManager constructor.
     """
     global g_camera_info_manager
     if g_camera_info_manager is None: # first time here?
@@ -81,6 +87,7 @@ def init_camera_info_manager(cname='camera', url=''):
     else:
         g_camera_info_manager.setCameraName(cname)
         g_camera_info_manager.setURL(url)
+        g_camera_info_manager.camera_info = None
     return g_camera_info_manager
 
 def set_calibration(calib):
@@ -356,7 +363,6 @@ class TestCameraInfoManager(unittest.TestCase):
     def test_set_calibration(self):
         """ Test ability to set calibrated CameraInfo."""
         os.environ["ROS_HOME"] = g_ros_home
-        delete_file(g_default_yaml)
         cinfo = init_camera_info_manager()
         exp = expected_calibration()
         resp = set_calibration(exp)
@@ -371,6 +377,35 @@ class TestCameraInfoManager(unittest.TestCase):
         if resp.success:
             self.assertTrue(cinfo.isCalibrated())
             self.assertEqual(exp, cinfo.getCameraInfo())
+
+    def test_save_calibration_default(self):
+        """ Test ability to save calibrated CameraInfo in default URL."""
+        os.environ["ROS_HOME"] = g_ros_home
+        delete_tmp_camera_info_directory()
+
+        # create instance to save calibrated data
+        cinfo = init_camera_info_manager()
+        cinfo.loadCameraInfo()
+        self.assertFalse(cinfo.isCalibrated())
+
+        # issue calibration service request
+        exp = expected_calibration()
+        resp = set_calibration(exp)
+        self.assertTrue(cinfo.isCalibrated())
+
+        # use assertTrue() instead of assertNotNone() so the test
+        # works for Python versions before 2.7
+        self.assertTrue(resp != None)
+        self.assertTrue(resp.success)
+
+        return                  # stub out rest until save implemented
+
+        # create a new instance with default URL, checking that it has
+        # the expected calibration
+        cinfo2 = init_camera_info_manager()
+        cinfo2.loadCameraInfo()
+        self.assertTrue(cinfo2.isCalibrated())
+        self.assertEqual(exp, cinfo2.getCameraInfo())
 
 def run_tests():
     # run the tests in this thread

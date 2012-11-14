@@ -183,14 +183,16 @@ class CameraInfoManager():
     be called again before the data are accessible.
 
     """
-
     def __init__(self, cname='axis_camera', url=''):
         """Constructor.
         """
         self.cname = cname
         self.url = url
         self.camera_info = None
-        # :todo: advertise set_camera_info service
+
+        # advertise set_camera_info service
+        self.svc = rospy.Service('set_camera_info', SetCameraInfo,
+                                 self.setCameraInfo)
 
     def __str__(self):
         """:returns: String representation of :class:`CameraInfoManager` """
@@ -291,6 +293,17 @@ class CameraInfoManager():
 
         """
         self._loadCalibration(self.url, self.cname)
+
+    def setCameraInfo(self, req):
+        """ Callback for SetCameraInfo request.
+
+        :param req: SetCameraInfo request message.
+        :returns: SetCameraInfo response message, success is True if
+                  message handled.
+        """
+        rsp = SetCameraInfoResponse()
+        rsp.success = True
+        return rsp
 
     def setCameraName(self, cname):
         """ Set a new camera name.

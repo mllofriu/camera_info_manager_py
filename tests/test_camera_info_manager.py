@@ -61,6 +61,38 @@ def expected_calibration():
 
     return ci
 
+g_camera_info_manager = None
+
+def init_camera_info_manager(cname='axis_camera', url=''):
+    """ Return an initialized CameraInfoManager instance for testing.
+
+    The `set_camera_info` service does not get freed immediately when
+    a test terminates and the :py:cls:`CameraInfoManager` object goes
+    out of scope.  That creates a problem when allocating new
+    instances for any tests that follow.
+
+    As a work-around, this function manages a single global instance,
+    filling in the desired values, as requested.  Its syntax is
+    based on the CameraInfoManager constructor.
+    """
+    global g_camera_info_manager
+    if g_camera_info_manager is None: # first time here?
+        g_camera_info_manager = CameraInfoManager(cname=cname, url=url)
+    else:
+        g_camera_info_manager.setCameraName(cname)
+        g_camera_info_manager.setURL(url)
+    return g_camera_info_manager
+
+def set_calibration(calib):
+    """ Issue SetCameraInfo service request."""
+    rospy.wait_for_service('set_camera_info')
+    try:
+        proxy = rospy.ServiceProxy('set_camera_info', SetCameraInfo)
+        rsp = proxy(calib)
+        return rsp
+    except rospy.ServiceException, e:
+        print "Service call failed: %s"%e
+
 class TestCameraInfoManager(unittest.TestCase):
     """Unit tests for Python camera_info_manager.
     """
@@ -69,7 +101,7 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_valid_camera_names(self):
         """Test that valid camera names are accepted."""
-        cinfo = CameraInfoManager()
+        cinfo = init_camera_info_manager()
 
         # a list of valid names to try:
         names = ["a", "1", "_",
@@ -86,7 +118,7 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_invalid_camera_names(self):
         """Test that invalid camera names are rejected."""
-        cinfo = CameraInfoManager()
+        cinfo = init_camera_info_manager()
 
         # a list of invalid names to try:
         names = ["", "-21", "C++",
@@ -237,7 +269,7 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_get_missing_info(self):
         """ Test ability to detect missing CameraInfo."""
-        cinfo = CameraInfoManager()
+        cinfo = init_camera_info_manager()
         self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
         self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
 
@@ -247,7 +279,7 @@ class TestCameraInfoManager(unittest.TestCase):
         # after loading camera info, it is uncalibrated, but not missing
         os.environ["ROS_HOME"] = g_ros_home
         delete_file(g_default_yaml)     # remove default URL file
-        cinfo = CameraInfoManager()
+        cinfo = init_camera_info_manager()
         cinfo.loadCameraInfo()
         self.assertFalse(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
@@ -268,7 +300,7 @@ class TestCameraInfoManager(unittest.TestCase):
         # after loading camera info, it is uncalibrated, but not missing
         os.environ["ROS_HOME"] = g_ros_home
         delete_file(g_default_yaml)     # remove default URL file
-        cinfo = CameraInfoManager()
+        cinfo = init_camera_info_manager()
         cinfo.loadCameraInfo()
         self.assertFalse(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
@@ -308,18 +340,23 @@ class TestCameraInfoManager(unittest.TestCase):
         """ Test ability to provide uncalibrated CameraInfo"""
         os.environ["ROS_HOME"] = g_ros_home
         delete_file(g_default_yaml)
-        cinfo = CameraInfoManager()
+        cinfo = init_camera_info_manager()
         cinfo.loadCameraInfo()
         self.assertFalse(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
 
     def test_get_calibrated_info(self):
         """ Test ability to provide calibrated CameraInfo"""
-        cinfo = CameraInfoManager(url=g_package_url)
+        cinfo = init_camera_info_manager(url=g_package_url)
         cinfo.loadCameraInfo()
         self.assertTrue(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), expected_calibration())
 
 if __name__ == '__main__':
+
+    # create asynchronous thread for handling service requests
+    
+    
+    # run the tests in this thread
     import rosunit
     rosunit.unitrun(PKG, 'test_camera_info_manager', TestCameraInfoManager) 

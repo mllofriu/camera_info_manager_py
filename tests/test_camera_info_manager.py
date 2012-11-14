@@ -92,6 +92,7 @@ def set_calibration(calib):
         return rsp
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
+        return None
 
 class TestCameraInfoManager(unittest.TestCase):
     """Unit tests for Python camera_info_manager.
@@ -352,11 +353,39 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertTrue(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), expected_calibration())
 
-if __name__ == '__main__':
+    def test_set_calibration(self):
+        """ Test ability to set calibrated CameraInfo."""
+        os.environ["ROS_HOME"] = g_ros_home
+        delete_file(g_default_yaml)
+        cinfo = init_camera_info_manager()
+        exp = expected_calibration()
+        resp = set_calibration(exp)
 
-    # create asynchronous thread for handling service requests
-    
-    
+        # use assertTrue() instead of assertNotNone() so the test
+        # works for Python versions before 2.7
+        self.assertTrue(resp != None)
+        self.assertTrue(resp.success)
+
+        # only check results if the service succeeded, avoiding
+        # confusing and redundant failure messages
+        if resp.success:
+            self.assertTrue(cinfo.isCalibrated())
+            self.assertEqual(exp, cinfo.getCameraInfo())
+
+def run_tests():
     # run the tests in this thread
     import rosunit
-    rosunit.unitrun(PKG, 'test_camera_info_manager', TestCameraInfoManager) 
+    rosunit.unitrun(PKG, 'test_camera_info_manager', TestCameraInfoManager)
+    rospy.signal_shutdown('test complete') # terminate the test node
+
+if __name__ == '__main__':
+
+    rospy.init_node("test_camera_info_manager")
+
+    # create asynchronous thread for running the tests
+    import threading
+    test_th = threading.Thread(name='test_thread', target=run_tests)
+    test_th.start()
+
+    # spin in the main thread: required for service callbacks
+    rospy.spin()

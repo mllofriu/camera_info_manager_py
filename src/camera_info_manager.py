@@ -47,6 +47,7 @@ import roslib; roslib.load_manifest(PKG)
 import rospy
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.srv import SetCameraInfo
+from sensor_msgs.srv import SetCameraInfoResponse
 
 import os
 import yaml
@@ -191,6 +192,7 @@ class CameraInfoManager():
         self.camera_info = None
 
         # advertise set_camera_info service
+        rospy.logdebug('set_camera_info service declared')
         self.svc = rospy.Service('set_camera_info', SetCameraInfo,
                                  self.setCameraInfo)
 
@@ -300,9 +302,15 @@ class CameraInfoManager():
         :param req: SetCameraInfo request message.
         :returns: SetCameraInfo response message, success is True if
                   message handled.
+
+        :post: camera_info updated, can be used immediately without reloading.
         """
+        rospy.logdebug('SetCameraInfo received for ' + self.cname)
+        self.camera_info = req.camera_info
+
         rsp = SetCameraInfoResponse()
         rsp.success = True
+        rsp.status_message = self.cname + ' updated'
         return rsp
 
     def setCameraName(self, cname):

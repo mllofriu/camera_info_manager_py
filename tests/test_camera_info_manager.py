@@ -5,6 +5,7 @@ import roslib; roslib.load_manifest(PKG)
 
 import sys
 import os
+import stat
 import unittest
 
 #import yaml
@@ -364,17 +365,38 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_save_calibration_file(self):
         """ Test saveCalibrationFile() function. """
+        fname = g_default_yaml  # define some shorter names
+        cname = g_camera_name
 
         # first save to non-existent file in non-existent directory
         os.environ["ROS_HOME"] = g_ros_home
         delete_tmp_camera_info_directory()
         exp = expected_calibration()
-        self.assertTrue(saveCalibrationFile(exp, g_default_yaml,
-                                            g_camera_name))
+        self.assertTrue(saveCalibrationFile(exp, fname, cname))
+        self.assertEqual(exp, loadCalibrationFile(fname, cname))
+
+        # now remove the file, but not the directory        
+        delete_file(fname)
+        self.assertTrue(saveCalibrationFile(exp, fname, cname))
+        self.assertEqual(exp, loadCalibrationFile(fname, cname))
+
+        # make the file and directory non-writable, try to write a
+        # null calibration (which should not work)
+        os.chmod(fname, stat.S_IREAD)
+        dirname = os.path.dirname(fname)
+        os.chmod(dirname, stat.S_IREAD|stat.S_IEXEC)
+        self.assertFalse(saveCalibrationFile(CameraInfo(), fname, cname))
+        os.chmod(dirname, stat.S_IREAD|stat.S_IWRITE|stat.S_IEXEC)
+        os.chmod(fname, stat.S_IREAD)
+        self.assertEqual(exp, loadCalibrationFile(fname, cname))
+
+        # clean up the mess this test created
+        delete_tmp_camera_info_directory()
 
     def test_set_calibration(self):
         """ Test ability to set calibrated CameraInfo."""
         os.environ["ROS_HOME"] = g_ros_home
+        delete_tmp_camera_info_directory()
         cinfo = init_camera_info_manager()
         exp = expected_calibration()
         resp = set_calibration(exp)

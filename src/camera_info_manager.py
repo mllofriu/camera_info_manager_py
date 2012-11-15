@@ -297,52 +297,6 @@ class CameraInfoManager():
         """
         self._loadCalibration(self.url, self.cname)
 
-    def _saveCalibration(self, new_info, url, cname):
-        """ Save calibration data.
-
-        This method writes new calibration information to the location
-        defined by the url and cname parameters, if possible.
-
-        :param new_info: `sensor_msgs/CameraInfo`_ to save.
-        :param url: Uniform Resource Locator for calibration data (if
-                    empty use file://${ROS_HOME}/camera_info/${NAME}.yaml).
-        :param cname: Camera name.
-        :returns: True if able to save the data.
-        """
-        success = False
-        resolved_url = resolveURL(url, cname)
-        url_type = parseURL(resolved_url)
-
-        if url_type == URL_empty:
-            return self._saveCalibration(new_info,
-                                         default_camera_info_url,
-                                         cname)
-
-        rospy.loginfo('writing calibration data to URL: ' + resolved_url)
-
-        if url_type == URL_file:
-            success = saveCalibrationFile(new_info, resolved_url[7:], cname)
-
-        elif url_type == URL_package:
-            filename = getPackageFileName(resolved_url)
-            if filename == '':          # package not resolved
-                rospy.logerr('Calibration package missing: ' +
-                             resolved_url + ' (ignored)')
-                # treat it like an empty URL
-                success = self._saveCalibration(new_info,
-                                                default_camera_info_url,
-                                                cname)
-            else:
-                success = saveCalibrationFile(new_info, filename, cname)
-
-        else:
-            rospy.logerr("Invalid camera calibration URL: " + resolved_url)
-            # treat it like an empty URL
-            success = self._saveCalibration(new_info,
-                                            default_camera_info_url,
-                                            cname)
-        return success
-
     def setCameraInfo(self, req):
         """ Callback for SetCameraInfo request.
 
@@ -356,8 +310,8 @@ class CameraInfoManager():
         rospy.logdebug('SetCameraInfo received for ' + self.cname)
         self.camera_info = req.camera_info
         rsp = SetCameraInfoResponse()
-        rsp.success = self._saveCalibration(req.camera_info,
-                                            self.url, self.cname)
+        rsp.success = saveCalibration(req.camera_info,
+                                      self.url, self.cname)
         if not rsp.success:
             rsp.status_message = "Error storing camera calibration."
         return rsp
@@ -578,6 +532,49 @@ def resolveURL(url, cname):
 
         # look for next '$'
         rest = dollar + 1
+
+def saveCalibration(new_info, url, cname):
+    """ Save calibration data.
+
+    This function writes new calibration information to the
+    location defined by the url and cname parameters, if possible.
+
+    :param new_info: `sensor_msgs/CameraInfo`_ to save.
+    :param url: Uniform Resource Locator for calibration data (if
+                empty use file://${ROS_HOME}/camera_info/${NAME}.yaml).
+    :param cname: Camera name.
+    :returns: True if able to save the data.
+    """
+    success = False
+    resolved_url = resolveURL(url, cname)
+    url_type = parseURL(resolved_url)
+
+    if url_type == URL_empty:
+        return saveCalibration(new_info, default_camera_info_url,
+                               cname)
+
+    rospy.loginfo('writing calibration data to URL: ' + resolved_url)
+
+    if url_type == URL_file:
+        success = saveCalibrationFile(new_info, resolved_url[7:], cname)
+
+    elif url_type == URL_package:
+        filename = getPackageFileName(resolved_url)
+        if filename == '':          # package not resolved
+            rospy.logerr('Calibration package missing: ' +
+                         resolved_url + ' (ignored)')
+            # treat it like an empty URL
+            success = saveCalibration(new_info, default_camera_info_url,
+                                      cname)
+        else:
+            success = saveCalibrationFile(new_info, filename, cname)
+
+    else:
+        rospy.logerr("Invalid camera calibration URL: " + resolved_url)
+        # treat it like an empty URL
+        success = saveCalibration(new_info, default_camera_info_url,
+                                  cname)
+    return success
 
 def saveCalibrationFile(ci, filename, cname):
     """ Save calibration data to a YAML file.

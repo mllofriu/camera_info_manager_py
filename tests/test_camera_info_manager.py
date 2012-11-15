@@ -360,6 +360,18 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertTrue(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), expected_calibration())
 
+    # test saving of calibration data
+
+    def test_save_calibration_file(self):
+        """ Test saveCalibrationFile() function. """
+
+        # first save to non-existent file in non-existent directory
+        os.environ["ROS_HOME"] = g_ros_home
+        delete_tmp_camera_info_directory()
+        exp = expected_calibration()
+        self.assertTrue(saveCalibrationFile(exp, g_default_yaml,
+                                            g_camera_name))
+
     def test_set_calibration(self):
         """ Test ability to set calibrated CameraInfo."""
         os.environ["ROS_HOME"] = g_ros_home
@@ -381,8 +393,7 @@ class TestCameraInfoManager(unittest.TestCase):
     def test_save_calibration_default(self):
         """ Test ability to save calibrated CameraInfo in default URL."""
         os.environ["ROS_HOME"] = g_ros_home
-        #delete_tmp_camera_info_directory()
-        delete_file(g_default_yaml)
+        delete_tmp_camera_info_directory()
 
         # create instance to save calibrated data
         cinfo = init_camera_info_manager()

@@ -50,6 +50,7 @@ from sensor_msgs.srv import SetCameraInfo
 from sensor_msgs.srv import SetCameraInfoResponse
 
 import os
+import errno
 import yaml
 
 default_camera_info_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml";
@@ -587,6 +588,40 @@ def saveCalibrationFile(ci, filename, cname):
     :param cname: Camera name.
     :returns: True if able to save the data.
     """
+    # make sure the directory exists and the file is writable
+    f = None
+    try:
+        f = open(filename, 'w')
+    except IOError as e:
+        if e.errno in set([errno.EACCES, errno.EPERM]):
+            pass
+        elif e.errno in set([errno.ENOENT]):
+            # Find last slash in the name.  The URL parser ensures
+            # there is at least one '/', at the beginning.
+            last_slash = filename.rfind('/')
+            if last_slash < 0:
+                rospy.logerr("filename [" + filename + "] has no '/'")
+                return False    # not a valid URL
+
+            # try to create the directory and all its parents
+            dirname = filename[0:last_slash+1]
+            try:
+                os.makedirs(dirname)
+            except OSError:
+                rospy.logerr("unable to create path to directory [" +
+                             dirname + "]")
+                return False
+
+            # try again to create the file
+            try:
+                f = open(filename, 'w')
+            except IOError:
+                pass
+
+    if f is None:               # something went wrong above?
+        rospy.logerr("file [" + filename + "] not accessible")
+        return False            # unable to write this file
+
     # make calibration dictionary from CameraInfo fields and camera name
     calib = {'image_width': ci.width,
              'image_height': ci.height,
@@ -598,7 +633,6 @@ def saveCalibrationFile(ci, filename, cname):
              'projection_matrix': {'data': ci.P}}
 
     try:
-        f = open(filename, 'w')
         rc = yaml.dump(calib, f)
         return True
 

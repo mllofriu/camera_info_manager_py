@@ -260,7 +260,8 @@ class CameraInfoManager():
         :param cname: Camera name.
 
         :raises: :exc:`IOError` if an existing calibration is unreadable.
-
+        :raises: :exc:`CameraInfoMissingError` if a `package:` URL is
+                 inaccessible.
         """
         resolved_url = resolveURL(url, cname)
         url_type = parseURL(resolved_url)
@@ -296,6 +297,52 @@ class CameraInfoManager():
         """
         self._loadCalibration(self.url, self.cname)
 
+    def _saveCalibration(self, new_info, url, cname):
+        """ Save calibration data.
+
+        This method writes new calibration information to the location
+        defined by the url and cname parameters, if possible.
+
+        :param new_info: `sensor_msgs/CameraInfo`_ to save.
+        :param url: Uniform Resource Locator for calibration data (if
+                    empty use file://${ROS_HOME}/camera_info/${NAME}.yaml).
+        :param cname: Camera name.
+        :returns: True if able to save the data.
+        """
+        success = False
+        resolved_url = resolveURL(url, cname)
+        url_type = parseURL(resolved_url)
+
+        if url_type == URL_empty:
+            return self._saveCalibration(new_info,
+                                         default_camera_info_url,
+                                         cname)
+
+        rospy.loginfo('writing calibration data to URL: ' + resolved_url)
+
+        if url_type == URL_file:
+            success = saveCalibrationFile(new_info, resolved_url[7:], cname)
+
+        elif url_type == URL_package:
+            filename = getPackageFileName(resolved_url)
+            if filename == '':          # package not resolved
+                rospy.logerr('Calibration package missing: ' +
+                             resolved_url + ' (ignored)')
+                # treat it like an empty URL
+                success = self._saveCalibration(new_info,
+                                                default_camera_info_url,
+                                                cname)
+            else:
+                success = saveCalibrationFile(new_info, filename, cname)
+
+        else:
+            rospy.logerr("Invalid camera calibration URL: " + resolved_url)
+            # treat it like an empty URL
+            success = self._saveCalibration(new_info,
+                                            default_camera_info_url,
+                                            cname)
+        return success
+
     def setCameraInfo(self, req):
         """ Callback for SetCameraInfo request.
 
@@ -303,14 +350,16 @@ class CameraInfoManager():
         :returns: SetCameraInfo response message, success is True if
                   message handled.
 
-        :post: camera_info updated, can be used immediately without reloading.
+        :post: camera_info updated, can be used immediately without
+               reloading.
         """
         rospy.logdebug('SetCameraInfo received for ' + self.cname)
         self.camera_info = req.camera_info
-
         rsp = SetCameraInfoResponse()
-        rsp.success = True
-        rsp.status_message = self.cname + ' updated'
+        rsp.success = self._saveCalibration(req.camera_info,
+                                            self.url, self.cname)
+        if not rsp.success:
+            rsp.status_message = "Error storing camera calibration."
         return rsp
 
     def setCameraName(self, cname):
@@ -529,3 +578,32 @@ def resolveURL(url, cname):
 
         # look for next '$'
         rest = dollar + 1
+
+def saveCalibrationFile(ci, filename, cname):
+    """ Save calibration data to a YAML file.
+
+    This function writes the new calibration information to a YAML
+    file, if possible.
+
+    :param ci: `sensor_msgs/CameraInfo`_ to save.
+    :param filename: local file to store data.
+    :param cname: Camera name.
+    :returns: True if able to save the data.
+    """
+    # make calibration dictionary from CameraInfo fields and camera name
+    calib = {'image_width': ci.width,
+             'image_height': ci.height,
+             'camera_name': cname,
+             'distortion_model': ci.distortion_model,
+             'distortion_coefficients': {'data': ci.D},
+             'camera_matrix': {'data': ci.K},
+             'rectification_matrix': {'data': ci.R},
+             'projection_matrix': {'data': ci.P}}
+
+    try:
+        f = open(filename, 'w')
+        rc = yaml.dump(calib, f)
+        return True
+
+    except IOError:
+        return False            # fail if unable to write file

@@ -381,7 +381,8 @@ class TestCameraInfoManager(unittest.TestCase):
     def test_save_calibration_default(self):
         """ Test ability to save calibrated CameraInfo in default URL."""
         os.environ["ROS_HOME"] = g_ros_home
-        delete_tmp_camera_info_directory()
+        #delete_tmp_camera_info_directory()
+        delete_file(g_default_yaml)
 
         # create instance to save calibrated data
         cinfo = init_camera_info_manager()
@@ -397,8 +398,6 @@ class TestCameraInfoManager(unittest.TestCase):
         # works for Python versions before 2.7
         self.assertTrue(resp != None)
         self.assertTrue(resp.success)
-
-        return                  # stub out rest until save implemented
 
         # create a new instance with default URL, checking that it has
         # the expected calibration

@@ -409,8 +409,11 @@ class TestCameraInfoManager(unittest.TestCase):
 def run_tests():
     # run the tests in this thread
     import rosunit
-    rosunit.unitrun(PKG, 'test_camera_info_manager', TestCameraInfoManager)
-    rospy.signal_shutdown('test complete') # terminate the test node
+    try:
+        rosunit.unitrun(PKG, 'test_camera_info_manager',
+                        TestCameraInfoManager)
+    finally:
+        rospy.signal_shutdown('test complete') # terminate the test node
 
 if __name__ == '__main__':
 

@@ -1,17 +1,10 @@
 #!/usr/bin/env python
 
+# This trivial node is useful for debugging set_camera_info service
+# request handling problems.
+
 PKG='camera_info_manager_py'
 import roslib; roslib.load_manifest(PKG)
-
-import sys
-import os
-import unittest
-
-#import yaml
-
-#from sensor_msgs.msg import CameraInfo
-#from sensor_msgs.srv import SetCameraInfo
-
 from camera_info_manager import *
 
 rospy.init_node("service_test_node")

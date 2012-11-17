@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+""" Python unittest script for camera_info_manager_py.
+
+Requires a rostest environment, allowing test cases to make
+set_camera_info service calls, where needed.
+"""
+
 PKG='camera_info_manager_py'
 import roslib; roslib.load_manifest(PKG)
 

@@ -1,8 +1,11 @@
-`camera_info_manager_py`_
-=========================
+camera_info_manager_py
+======================
 
 ROS Python camera_info_manager interface, providing
-`sensor_msgs/CameraInfo`_ support for drivers written in Python. 
+`sensor_msgs/CameraInfo`_ support for camera drivers written in
+Python.
+
+ROS wiki documentation: `camera_info_manager_py`_.
 
 This interface is similar to that of the C++ `camera_info_manager`_
 package, but not identical.

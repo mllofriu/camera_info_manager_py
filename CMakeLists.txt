@@ -10,6 +10,7 @@ include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 #set(ROS_BUILD_TYPE RelWithDebInfo)
 
 rosbuild_init()
+rosbuild_make_distribution(0.1.0)
 
 # unit tests
 rosbuild_add_rostest(tests/unit_test.test)

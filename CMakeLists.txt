@@ -1,16 +1,13 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(camera_info_manager_py)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
+find_package(catkin REQUIRED COMPONENTS rospy rostest sensor_msgs)
+include_directories(include ${catkin_INCLUDE_DIRS})
 
-rosbuild_init()
-rosbuild_make_distribution(0.1.0)
+catkin_python_setup()
+catkin_package(CATKIN_DEPENDS sensor_msgs)
 
-# unit tests
-rosbuild_add_rostest(tests/unit_test.test)
+# Unit test uses nose, but needs rostest to create a ROS environment.
+# (not working yet)
+#catkin_add_nosetests(tests)
+#add_rostest(tests/unit_test.test)

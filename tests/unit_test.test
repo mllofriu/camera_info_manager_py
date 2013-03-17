@@ -10,6 +10,6 @@
   <!-- start test_camera_info_manager Python node -->
   <test pkg="camera_info_manager_py" type="test_camera_info_manager.py"
         name="unit_test"
-        test-name="test_camera_info_manager_py" time-limit="2.0" />
+        test-name="test_camera_info_manager_py" time-limit="5.0" />
 
 </launch>

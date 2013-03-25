@@ -7,19 +7,14 @@ set_camera_info service calls, where needed.
 """
 
 PKG='camera_info_manager_py'
-import roslib; roslib.load_manifest(PKG)
+import roslib
 
 import sys
 import os
 import stat
 import unittest
 
-#import yaml
-
-#from sensor_msgs.msg import CameraInfo
-#from sensor_msgs.srv import SetCameraInfo
-
-from camera_info_manager import *
+from camera_info_manager_py import *
 
 g_package_name = PKG
 g_test_name = "test_calibration"
@@ -455,6 +450,8 @@ def run_tests():
         rospy.signal_shutdown('test complete') # terminate the test node
 
 if __name__ == '__main__':
+
+    print str(sys.path)
 
     rospy.init_node("test_camera_info_manager")
 

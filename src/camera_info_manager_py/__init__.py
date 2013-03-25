@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 """
-.. module:: camera_info_manager
+.. module:: camera_info_manager_py
 
 Python camera_info_manager interface, providing `CameraInfo` support
 for drivers written in Python. This is very similar to the C++
@@ -42,9 +42,8 @@ camera_info_manager package, but not identical.
 
 """
 
-PKG='camera_info_manager_py'
-import roslib; roslib.load_manifest(PKG)
 import rospy
+import roslib
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 from sensor_msgs.srv import SetCameraInfoResponse

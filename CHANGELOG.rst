@@ -3,6 +3,7 @@ Change log for camera_info_manager_py package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 0.2.0 (forthcoming)
+-------------------
 
  * Convert to catkin [3]_.
  * Remove roslib dependency [4]_.

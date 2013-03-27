@@ -21,8 +21,8 @@
   <build_depend>rostest</build_depend>
   <build_depend>sensor_msgs</build_depend>
 
+  <run_depend>python-rospkg</run_depend>
   <run_depend>python-yaml</run_depend>
-  <run_depend>roslib</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>sensor_msgs</run_depend>
 

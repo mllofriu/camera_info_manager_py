@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(camera_info_manager_py)
 
-find_package(catkin REQUIRED COMPONENTS roslib rospy rostest sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy rostest sensor_msgs)
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 catkin_python_setup()

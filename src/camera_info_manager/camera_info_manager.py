@@ -42,8 +42,8 @@ camera_info_manager package, but not identical.
 
 """
 
+import rospkg
 import rospy
-import roslib
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.srv import SetCameraInfo
 from sensor_msgs.srv import SetCameraInfoResponse
@@ -403,11 +403,12 @@ def getPackageFileName(url):
 
     # Look up the ROS package path name.
     pkgPath = ""
+    rp = rospkg.RosPack()
     try:
-        pkgPath = roslib.packages.get_pkg_dir(package)
+        pkgPath = rp.get_path(package)
         pkgPath += url[rest:]
 
-    except roslib.packages.InvalidROSPkgException:
+    except rospkg.ResourceNotFound:
         rospy.logwarn("unknown package: " + package + " (ignored)")
 
     return pkgPath

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Python unittest script for camera_info_manager_py.
+""" Python unittest script for camera_info_manager module.
 
 Requires a rostest environment, allowing test cases to make
 set_camera_info service calls, where needed.
@@ -14,7 +14,7 @@ import os
 import stat
 import unittest
 
-from camera_info_manager_py import *
+from camera_info_manager import *
 
 g_package_name = PKG
 g_test_name = "test_calibration"

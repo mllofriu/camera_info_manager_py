@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 """
-.. module:: camera_info_manager_py
+.. module:: camera_info_manager
 
 Python camera_info_manager interface, providing `CameraInfo` support
 for drivers written in Python. This is very similar to the C++

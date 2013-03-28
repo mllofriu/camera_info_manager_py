@@ -2,7 +2,7 @@
 Change log for camera_info_manager_py package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.2.0 (forthcoming)
+0.2.0 (2013-03-28)
 -------------------
 
  * Convert to catkin [3]_.

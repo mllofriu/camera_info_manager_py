@@ -16,5 +16,5 @@ Change log for camera_info_manager_py package
 
 Issues
 ======
-.. [3] `issue #3 <https://github.com/jack-oquin/camera_info_manager/issues/3>`_
-.. [4] `issue #4 <https://github.com/jack-oquin/camera_info_manager/issues/4>`_
+.. [3] `issue #3 <https://github.com/jack-oquin/camera_info_manager_py/issues/3>`_
+.. [4] `issue #4 <https://github.com/jack-oquin/camera_info_manager_py/issues/4>`_

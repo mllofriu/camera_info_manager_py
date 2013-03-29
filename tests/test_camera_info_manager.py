@@ -7,8 +7,7 @@ set_camera_info service calls, where needed.
 """
 
 PKG='camera_info_manager_py'
-import roslib
-
+import rospkg
 import sys
 import os
 import stat
@@ -266,7 +265,8 @@ class TestCameraInfoManager(unittest.TestCase):
 
         # resolve known file in this package
         filename = getPackageFileName(g_package_url)
-        pkgPath = roslib.packages.get_pkg_dir(g_package_name)
+        rp = rospkg.RosPack()
+        pkgPath = rp.get_path(g_package_name)
         expected_filename = pkgPath + g_package_filename
         self.assertEqual(filename, expected_filename)
 
@@ -330,7 +330,8 @@ class TestCameraInfoManager(unittest.TestCase):
         """ Test loadCalibrationFile() function. """
 
         # try with an actual file in this directory
-        pkgPath = roslib.packages.get_pkg_dir(g_package_name)
+        rp = rospkg.RosPack()
+        pkgPath = rp.get_path(g_package_name)
         filename = pkgPath + g_package_filename
         ci = loadCalibrationFile(filename, g_camera_name)
         self.assertEqual(ci, expected_calibration())

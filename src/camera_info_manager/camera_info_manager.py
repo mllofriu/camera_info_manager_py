@@ -42,6 +42,8 @@ for drivers written in Python. This is very similar to the
 .. _`sensor_msgs/SetCameraInfo`: http://ros.org/doc/api/sensor_msgs/html/srv/SetCameraInfo.html
 
 """
+# enable some python3 compatibility options:
+from __future__ import absolute_import, print_function, unicode_literals
 
 import rospkg
 import rospy

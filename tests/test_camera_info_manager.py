@@ -5,6 +5,8 @@
 Requires a rostest environment, allowing test cases to make
 set_camera_info service calls, where needed.
 """
+# enable some python3 compatibility options:
+from __future__ import absolute_import, print_function, unicode_literals
 
 PKG='camera_info_manager_py'
 import rospkg
@@ -99,7 +101,7 @@ def set_calibration(calib):
         rsp = proxy(calib)
         return rsp
     except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+        print("Service call failed: " + str(e))
         return None
 
 class TestCameraInfoManager(unittest.TestCase):
@@ -454,8 +456,6 @@ def run_tests():
         rospy.signal_shutdown('test complete') # terminate the test node
 
 if __name__ == '__main__':
-
-    print str(sys.path)
 
     rospy.init_node("test_camera_info_manager")
 

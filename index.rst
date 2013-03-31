@@ -6,7 +6,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   README
    camera_info_manager
+   CHANGELOG
 
 Indices and tables
 ==================

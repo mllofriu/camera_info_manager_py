@@ -34,9 +34,10 @@
 .. module:: camera_info_manager
 
 Python camera_info_manager interface, providing `CameraInfo` support
-for drivers written in Python. This is very similar to the C++
-camera_info_manager package, but not identical.
+for drivers written in Python. This is very similar to the 
+`C++ camera_info_manager`_ package, but not identical.
 
+.. _`C++ camera_info_manager`: http://ros.org/wiki/camera_info_manager
 .. _`sensor_msgs/CameraInfo`: http://ros.org/doc/api/sensor_msgs/html/msg/CameraInfo.html
 .. _`sensor_msgs/SetCameraInfo`: http://ros.org/doc/api/sensor_msgs/html/srv/SetCameraInfo.html
 
@@ -134,7 +135,7 @@ class CameraInfoManager():
     users may customize this URL, but that is handled outside this
     class.
 
-    Camera calibration information is stored a YAML format.
+    Camera calibration information is stored in YAML format.
 
     Example URL syntax:
 
@@ -175,7 +176,7 @@ class CameraInfoManager():
 
     **Loading Calibration Data**
 
-    Unlike the C++ camera_info_manager, this Python implementation
+    Unlike the `C++ camera_info_manager`_, this Python implementation
     loads nothing until the :py:meth:`loadCameraInfo` method is
     called.  It is an error to call :py:meth:`getCameraInfo`, or
     :py:meth:`isCalibrated` before that is done.

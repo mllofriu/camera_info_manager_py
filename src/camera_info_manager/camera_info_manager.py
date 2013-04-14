@@ -286,6 +286,7 @@ class CameraInfoManager():
 
         else:
             rospy.logerr("Invalid camera calibration URL: " + resolved_url)
+            self.camera_info = CameraInfo()
 
     def loadCameraInfo(self):
         """ Load currently configured calibration data (if any).

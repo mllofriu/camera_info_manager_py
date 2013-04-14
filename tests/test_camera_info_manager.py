@@ -23,7 +23,8 @@ g_package_filename = "/tests/" + g_test_name +".yaml"
 g_package_url = "package://" + g_package_name + g_package_filename
 g_package_name_url = "package://" + g_package_name + "/tests/${NAME}.yaml"
 
-g_ros_home = "/tmp"                    # unit test ${ROS_HOME} setting
+g_test_home = "/tmp"                   # unit test ${HOME} setting
+g_ros_home = g_test_home + "/.ros"     # unit test ${ROS_HOME} setting
 g_camera_name = "camera"
 g_default_yaml = g_ros_home + "/camera_info/" + g_camera_name + ".yaml"
 g_default_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml"
@@ -196,12 +197,21 @@ class TestCameraInfoManager(unittest.TestCase):
 
     def test_url_substitution_ros_home(self):
         """ Test URL ${ROS_HOME} variable resolution."""
-
-        # resolve ${ROS_HOME} with environment variable undefined
-        del os.environ["ROS_HOME"]
-        home = os.environ['HOME']
         name_url = "file://${ROS_HOME}/camera_info/test_camera.yaml"
-        exp_url = "file://" + home + "/.ros/camera_info/test_camera.yaml"
+
+        # resolve ${ROS_HOME} with neither environment variable nor
+        # $HOME defined (should leave the string unresolved)
+        os.environ["ROS_HOME"] = 'x'    # ensure existence before deleting
+        os.environ["HOME"] = 'x'
+        del os.environ["ROS_HOME"]
+        del os.environ["HOME"]
+        exp_url = name_url              # leaves variable unresolved
+        self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
+
+        # resolve ${ROS_HOME} with environment variable undefined, but
+        # $HOME defined
+        os.environ['HOME'] = g_test_home # set $HOME value for test
+        exp_url = "file://" + g_test_home + "/.ros/camera_info/test_camera.yaml"
         self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
 
         # resolve ${ROS_HOME} with environment variable defined
@@ -209,9 +219,14 @@ class TestCameraInfoManager(unittest.TestCase):
         exp_url = "file:///my/ros/home/camera_info/test_camera.yaml";
         self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
 
+        # try /tmp
+        os.environ["ROS_HOME"] = "/tmp"
+        exp_url = "file:///tmp/camera_info/test_camera.yaml";
+        self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
+
         # try the unit test default value
         os.environ["ROS_HOME"] = g_ros_home
-        exp_url = "file:///tmp/camera_info/test_camera.yaml";
+        exp_url = "file:///tmp/.ros/camera_info/test_camera.yaml";
         self.assertEqual(resolveURL(name_url, g_camera_name), exp_url)
 
     def test_url_substitution_strange_dollar_signs(self):
@@ -285,6 +300,27 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
         self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
 
+    def test_get_info_without_environment(self):
+        """ Test ability to detect missing CameraInfo when neither
+        ${ROS_HOME} nor $HOME are defined."""
+
+        # undefine the environment variables
+        del os.environ["ROS_HOME"]
+        del os.environ["HOME"]
+
+        # run the test
+        cinfo = init_camera_info_manager()
+        self.assertRaises(CameraInfoMissingError, cinfo.isCalibrated)
+        self.assertRaises(CameraInfoMissingError, cinfo.getCameraInfo)
+        self.assertEqual(cinfo.camera_info, None)
+        cinfo.loadCameraInfo()
+        self.assertEqual(parseURL(cinfo.getURL()), URL_empty)
+        self.assertEqual(cinfo.getCameraInfo(), CameraInfo())
+        self.assertFalse(cinfo.isCalibrated())
+
+        # restore test $HOME
+        os.environ['HOME'] = g_test_home
+
     def test_set_camera_name_info_invalidation(self):
         """ Test that setCameraName() invalidates camera info correctly."""
 
@@ -347,6 +383,11 @@ class TestCameraInfoManager(unittest.TestCase):
         os.environ["ROS_HOME"] = g_ros_home
         delete_file(g_default_yaml)
         ci = loadCalibrationFile(g_default_yaml, g_camera_name)
+        self.assertEqual(ci, CameraInfo())
+
+        # try file name with ${ROS_HOME} unresolved
+        filename = "${ROS_HOME}/camera_info/" + g_camera_name + ".yaml"
+        ci = loadCalibrationFile(filename, g_camera_name)
         self.assertEqual(ci, CameraInfo())
 
     def test_get_uncalibrated_info(self):

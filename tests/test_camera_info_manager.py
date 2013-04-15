@@ -305,6 +305,8 @@ class TestCameraInfoManager(unittest.TestCase):
         ${ROS_HOME} nor $HOME are defined."""
 
         # undefine the environment variables
+        os.environ["ROS_HOME"] = 'x'    # ensure existence before deleting
+        os.environ["HOME"] = 'x'
         del os.environ["ROS_HOME"]
         del os.environ["HOME"]
 

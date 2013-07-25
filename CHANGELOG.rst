@@ -1,8 +1,8 @@
 Change history
 ==============
 
-0.2.2 (forthcoming)
--------------------
+0.2.2 (2013-07-25)
+------------------
 
  * Add namespace parameter to constructor (`#9`_), so a driver can
    handle multiple cameras. Enhancement thanks to Martin Llofriu.

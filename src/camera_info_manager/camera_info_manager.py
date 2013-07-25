@@ -88,6 +88,10 @@ class CameraInfoManager():
 
     :param cname: camera name.
     :param url: Uniform Resource Locator for camera calibration data.
+    :param namespace: Optional ROS namespace prefix for the service
+           name.  If a namespace is specified, the '/' separator
+           required between it and ``set_camera_info`` will be
+           supplied automatically.
  
     .. describe:: str(camera_info_manager_obj)
  
@@ -106,6 +110,14 @@ class CameraInfoManager():
     The calling node *must* invoke `rospy.spin()` in some thread, so
     :class:`CameraInfoManager` gets called to handle arriving service
     requests.
+
+    If a driver handles multiple cameras, it should use the
+    ``namespace`` parameter to declare separate
+    :class:`CameraInfoManager` instances for each one, as in this
+    stereo example::
+
+      left_ci = CameraInfoManager(cname='left_camera', namespace='left')
+      right_ci = CameraInfoManager(cname='right_camera', namespace='right')
 
     **Camera Name**
 
@@ -187,7 +199,7 @@ class CameraInfoManager():
     be called again before the data are accessible.
 
     """
-    def __init__(self, cname='camera', url='',namespace=''):
+    def __init__(self, cname='camera', url='', namespace=''):
         """Constructor.
         """
         self.cname = cname
@@ -195,8 +207,11 @@ class CameraInfoManager():
         self.camera_info = None
 
         # advertise set_camera_info service
-        rospy.logdebug('set_camera_info service declared')
-        self.svc = rospy.Service(namespace+'set_camera_info', SetCameraInfo,
+        service_name = 'set_camera_info'
+        if namespace:
+            service_name = namespace + '/' + service_name
+        rospy.logdebug(service_name + ' service declared')
+        self.svc = rospy.Service(service_name, SetCameraInfo,
                                  self.setCameraInfo)
 
     def __str__(self):

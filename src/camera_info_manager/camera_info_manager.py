@@ -187,7 +187,7 @@ class CameraInfoManager():
     be called again before the data are accessible.
 
     """
-    def __init__(self, cname='camera', url=''):
+    def __init__(self, cname='camera', url='',namespace=''):
         """Constructor.
         """
         self.cname = cname
@@ -196,7 +196,7 @@ class CameraInfoManager():
 
         # advertise set_camera_info service
         rospy.logdebug('set_camera_info service declared')
-        self.svc = rospy.Service('set_camera_info', SetCameraInfo,
+        self.svc = rospy.Service(namespace+'set_camera_info', SetCameraInfo,
                                  self.setCameraInfo)
 
     def __str__(self):

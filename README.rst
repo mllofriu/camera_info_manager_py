@@ -10,10 +10,8 @@ ROS wiki documentation: `camera_info_manager_py`_.
 This interface is similar to that of the C++ `camera_info_manager`_
 package, but not identical.
 
-**Note**::
-
-  This repository will likely move to the `ros-perception`_ github
-  organization fairly soon.
+**Note**: This repository will likely move to the `ros-perception`_
+github organization fairly soon.
 
 .. _ROS: http://ros.org
 .. _`sensor_msgs/CameraInfo`: http://ros.org/doc/api/sensor_msgs/html/msg/CameraInfo.html

@@ -12,8 +12,8 @@
   <author>Jack O'Quin</author>
   <license>BSD</license>
   <url type="website">http://ros.org/wiki/camera_info_manager_py</url>
-  <url type="repository">https://github.com/jack-oquin/camera_info_manager_py</url>
-  <url type="bugtracker">https://github.com/jack-oquin/camera_info_manager_py/issues</url>
+  <url type="repository">https://github.com/ros-perception/camera_info_manager_py.git</url>
+  <url type="bugtracker">https://github.com/ros-perception/camera_info_manager_py/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

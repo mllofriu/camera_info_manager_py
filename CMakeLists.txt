@@ -9,6 +9,6 @@ catkin_package(CATKIN_DEPENDS sensor_msgs)
 
 # Unit test uses nose, but needs rostest to create a ROS environment.
 if (CATKIN_ENABLE_TESTING)
-  find_package(rostest)
+  find_package(rostest REQUIRED)
   add_rostest(tests/unit_test.test)
 endif(CATKIN_ENABLE_TESTING)

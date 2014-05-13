@@ -1,6 +1,13 @@
 Change history
 ==============
 
+0.2.3 (2014-05-13)
+------------------
+
+ * Only use rostest when testing enabled (`#6`_), thanks to Lukas
+   Bulwahn.
+ * Move repository to ros-perception.
+
 0.2.2 (2013-07-25)
 ------------------
 
@@ -29,5 +36,6 @@ Change history
 
 .. _`#3`: https://github.com/jack-oquin/camera_info_manager_py/issues/3
 .. _`#4`: https://github.com/jack-oquin/camera_info_manager_py/issues/4
+.. _`#6`: https://github.com/jack-oquin/camera_info_manager_py/pull/6
 .. _`#7`: https://github.com/jack-oquin/camera_info_manager_py/issues/7
 .. _`#9`: https://github.com/jack-oquin/camera_info_manager_py/pull/9

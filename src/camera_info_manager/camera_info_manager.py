@@ -646,13 +646,13 @@ def saveCalibrationFile(ci, filename, cname):
              'image_height': ci.height,
              'camera_name': cname,
              'distortion_model': ci.distortion_model,
-             'distortion_coefficients': {'data': ci.D},
-             'camera_matrix': {'data': ci.K},
-             'rectification_matrix': {'data': ci.R},
-             'projection_matrix': {'data': ci.P}}
+             'distortion_coefficients': {'data': ci.D, 'rows': 1, 'cols': len(ci.D)},
+             'camera_matrix': {'data': ci.K, 'rows': 3, 'cols': 3},
+             'rectification_matrix': {'data': ci.R, 'rows': 3, 'cols': 3},
+             'projection_matrix': {'data': ci.P, 'rows': 3, 'cols': 4}}
 
     try:
-        rc = yaml.dump(calib, f)
+        rc = yaml.safe_dump(calib, f)
         return True
 
     except IOError:

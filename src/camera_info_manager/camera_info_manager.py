@@ -31,10 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 """
-.. module:: camera_info_manager
-
 Python camera_info_manager interface, providing `CameraInfo` support
-for drivers written in Python. This is very similar to the 
+for drivers written in Python. This is very similar to the
 `C++ camera_info_manager`_ package, but not identical.
 
 .. _`C++ camera_info_manager`: http://ros.org/wiki/camera_info_manager
@@ -58,7 +56,7 @@ import yaml
 default_camera_info_url = "file://${ROS_HOME}/camera_info/${NAME}.yaml";
 
 # parseURL() type codes:
-URL_empty = 0                   # empty string 
+URL_empty = 0                   # empty string
 URL_file = 1                    # file:
 URL_package = 2                 # package:
 URL_invalid = 3                 # anything >= is invalid
@@ -92,9 +90,9 @@ class CameraInfoManager():
            name.  If a namespace is specified, the '/' separator
            required between it and ``set_camera_info`` will be
            supplied automatically.
- 
+
     .. describe:: str(camera_info_manager_obj)
- 
+
        :returns: String representation of :class:`CameraInfoManager` object.
 
     **ROS Service**

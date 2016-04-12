@@ -19,18 +19,8 @@ if (CATKIN_ENABLE_TESTING)
   target_link_libraries(generate_camera_info ${catkin_LIBRARIES}
       ${roscpp_LIBRARIES} ${camera_info_manager_LIBRARIES})
 
-  # Run generate_camera_info with env ROS_HOME set to pwd
-  # or if not pwd somewhere else where the load_cpp_camera_info.py
-  # will be able to find it (TODO(lucasw)).
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/camera_info/camera.yaml
-                    COMMAND ROS_HOME=${CMAKE_CURRENT_BINARY_DIR} rosrun camera_info_manager_py generate_camera_info
-                    DEPENDS generate_camera_info)
-
   find_package(rostest REQUIRED)
 
-  add_custom_target(camera_yaml DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/camera_info/camera.yaml)
-  # TODO(lucasw) I want to have the rostest generate camera.yaml,
-  # this does not.
-  add_rostest(tests/load_cpp_camera_info.test DEPENDENCIES camera_yaml)
+  add_rostest(tests/load_cpp_camera_info.test DEPENDENCIES generate_camera_info)
   add_rostest(tests/unit_test.test)
 endif(CATKIN_ENABLE_TESTING)

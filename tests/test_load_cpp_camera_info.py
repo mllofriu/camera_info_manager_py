@@ -12,6 +12,8 @@ class TestLoadCppCameraInfo(unittest.TestCase):
         # generated, then check values against expected.
         # The values ought to be passed as args into both this test and the C++
         # camera info generation.
+        ci = loadCalibrationFile("camera_info/camera.yaml", "camera")
+        print ci
         self.assertTrue(True)
 
 if __name__ == '__main__':

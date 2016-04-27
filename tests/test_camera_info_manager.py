@@ -408,6 +408,64 @@ class TestCameraInfoManager(unittest.TestCase):
         self.assertTrue(cinfo.isCalibrated())
         self.assertEqual(cinfo.getCameraInfo(), expected_calibration())
 
+    def test_approximate_zoom_camera_info_manager(self):
+        """ Test the approximating zoom camera info manager."""
+        with ApproximateZoomCameraInfoManager(2.7, 48, 720, 576, 1, 9999, g_camera_name, g_default_url, "a") as cinfo:
+            cinfo.loadCameraInfo()
+
+            ci = CameraInfo()
+            ci.width = 720
+            ci.height = 576
+
+            cinfo.set_zoom(1)
+            ci.K = [808.5732386055176, 0.0, 360.0, 0.0, 827.0233461667892, 288.0, 0.0, 0.0, 1.0]
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+            cinfo.set_zoom(9999)
+            ci.K = [15276.046998782003, 0.0, 360.0, 0.0, 15277.064936588955, 288.0, 0.0, 0.0, 1.0]
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+            cinfo.set_zoom(5000)
+            ci.K = [1600.7022763128055, 0.0, 360.0, 0.0, 1610.3104349720404, 288.0, 0.0, 0.0, 1.0]
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+            cinfo.set_resolution(360, 288)
+            ci.K = [800.3511381564027, 0.0, 180.0, 0.0, 805.1552174860202, 144.0, 0.0, 0.0, 1.0]
+            ci.width = 360
+            ci.height = 288
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+    def test_interpolating_zoom_camera_info_manager(self):
+        """ Test the interpolating zoom camera info manager."""
+        url_template = "package://" + g_package_name + "/tests/test_calibration_zoom_%d.yaml"
+        with InterpolatingZoomCameraInfoManager(url_template, [1, 9999], g_camera_name, url_template % 1, "b") as cinfo:
+            cinfo.loadCameraInfo()
+
+            ci = expected_calibration()
+
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+            cinfo.set_zoom(1)
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+            cinfo.set_zoom(9999)
+            ci = expected_calibration()
+            ci.K = [1259.79888071407669, 0.0, 332.0316187674498, 0.0, 1258.00868558667878, 252.46066959143357, 0.0, 0.0,
+                    1.0]
+            ci.D = [-0.026129794156876202, 0.0053510647147691104, -0.0004329961180682111, 0.00002979023290858089, 0]
+            ci.P = [1259.79888071407669, 0.0, 332.0316187674498, 0.0, 0.0, 1258.00868558667878, 252.46066959143357, 0.0,
+                    0.0, 0.0, 1.0, 0.0]
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
+            cinfo.set_zoom(5000)
+            ci = expected_calibration()
+            ci.K = [759.7988807140766, 0.0, 332.0316187674498, 0.0, 758.0086855866787, 252.46066959143357, 0.0, 0.0,
+                    1.0]
+            ci.D = [-0.14371386786281912, 0.029430855931230106, -0.002381478649375161, 0.0001638462809971949, 0.0]
+            ci.P = [759.7988807140766, 0.0, 332.0316187674498, 0.0, 0.0, 758.0086855866787, 252.46066959143357, 0.0,
+                    0.0, 0.0, 1.0, 0.0]
+            self.assertEqual(cinfo.getCameraInfo(), ci)
+
     # test saving of calibration data
 
     def test_save_calibration_file(self):

@@ -31,8 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 """
-`CameraInfo` support for drivers of zoom cameras written in Python. This is
-very similar to the `C++ camera_info_manager`_ package, but not identical.
+`CameraInfo` support for drivers of zoom cameras written in Python.
+A similar C++ API does not exist yet.
 """
 # enable some python3 compatibility options:
 from __future__ import absolute_import, print_function, unicode_literals

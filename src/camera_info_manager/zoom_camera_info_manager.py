@@ -52,11 +52,14 @@ from camera_info_manager import CameraInfoManager, CameraInfoError, CameraInfoMi
 class ZoomCameraInfoManager(CameraInfoManager):
     """
     :class:`ZoomCameraInfoManager` provides ROS CameraInfo support for
-    Python zoom camera drivers. It has not yet been integrated into the
-    calibration package.
+    Python zoom camera drivers. 
 
     This is a base class for all zoom cameras (since there are several
     ways to implement the changing camera infos).
+    
+    No standardized calibration package/procedure has been released yet,
+    but at each specific class' docstring contains some hints on how to
+    calibrate a zoom camera.
     """
 
     def __init__(self, min_zoom, max_zoom, cname='camera', url='', namespace=''):
@@ -106,13 +109,22 @@ class ZoomCameraInfoManager(CameraInfoManager):
 class ApproximateZoomCameraInfoManager(ZoomCameraInfoManager):
     """
     A zoom camera info manager implementation that only approximates the K matrix by computing it from specified minimum
-    and maximum field of view (FOV).
+    and maximum field of view (FOV). This will probably never be very precise, but may work well enough for some cameras.
 
     Only the K matrix is going to be computed. All other parts of the :class:`CameraInfo` message are either empty or
     copied from the loaded calibration file (if provided).
 
     Especially, the distortion coefficients should also decrease with increasing zoom level, but the relation is
     unclear.
+    
+    Hints for calibration:
+    You should find the minimum and maximum FOV (Field Of View) of your camera in its documentation (or the documentation 
+    of the lens).
+    The FOV passed to constructor is the horizontal FOV; vertical FOV is derived from the horizontal FOV and image
+    aspect ratio. You can also measure the FOV physically by shooting a tape measure and using a bit of trigonometry.
+    Ideally, you should calibrate the camera for the lowest and highest zoom levels, and then compare, if the 
+    K matrix returned by this manager is similar. If it is not, just play with the minimum/maximum FOV, until
+    you are close enough at both ends.
     """
 
     def __init__(self,
@@ -197,7 +209,23 @@ class ApproximateZoomCameraInfoManager(ZoomCameraInfoManager):
 
 
 class InterpolatingZoomCameraInfoManager(ZoomCameraInfoManager):
-    """A zoom camera info manager that interpolates between several calibrations taken at different zoom levels."""
+    """
+    A zoom camera info manager that interpolates between several calibrations taken at different zoom levels.
+    
+    The calibration results can be as accurate as you need (you increase accuracy by adding more calibration
+    files). E.g. if the camera has only a few discrete zoom steps, you can just calibrate all of them and reach
+    the lowest calibration error possible.
+    
+    Hints for calibration:
+    Use the standard camera calibration package, set a fixed zoom level and perform the calibration. Copy the
+    calibration YAML file to some other location, change the zoom level, and calibrate again. Rename all the 
+    calibration YAML files, so that their names correspond to the calibration_url_template you pass to the
+    constructor.
+    It is advised to always perform calibration on (at least) the highest and lowest zoom step.
+    As the very last, you should run the calibration procedure at the most used zoom level, so that the system
+    stores its calibration as a fallback for this camera (in case some other code doesn't know this is a zoom
+    camera).
+    """
 
     def __init__(self,
                  calibration_url_template, zoom_levels,

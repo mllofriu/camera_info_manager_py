@@ -222,9 +222,8 @@ class InterpolatingZoomCameraInfoManager(ZoomCameraInfoManager):
     calibration YAML files, so that their names correspond to the calibration_url_template you pass to the
     constructor.
     It is advised to always perform calibration on (at least) the highest and lowest zoom step.
-    As the very last, you should run the calibration procedure at the most used zoom level, so that the system
-    stores its calibration as a fallback for this camera (in case some other code doesn't know this is a zoom
-    camera).
+    The last calibration should be on the most-used zoom level, in case some other code doesn't know this is
+    a zoom camera
     """
 
     def __init__(self,

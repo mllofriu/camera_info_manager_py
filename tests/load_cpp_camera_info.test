@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- rostest launch file for camera_info_manager_py
+
+     This unit test uses rostest, because the CameraInfoManager class
+     constructor requires a ROS environment.  Otherwise, it is
+     completely self-contained.  
+-->
+
+<launch>
+
+  <node name="camera_info_cpp" pkg="camera_info_manager_py" type="generate_camera_info" >
+    <!-- put the yaml somewhere other than .ros/camera_info? -->
+    <!-- env name="ROS_HOME" value="" /-->
+  </node>
+
+  <!-- start test_camera_info_manager Python node -->
+  <test pkg="camera_info_manager_py" type="test_load_cpp_camera_info.py"
+        name="test_load_cpp_camera_info"
+        test-name="test_load_cpp_camera_info" time-limit="5.0" />
+
+</launch>
